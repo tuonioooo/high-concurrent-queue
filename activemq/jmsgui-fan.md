@@ -50,3 +50,31 @@ JMS由以下元素组成。
 
 一种支持发送消息给多个订阅者的机制。
 
+## 对象模型
+
+JMS对象模型包含如下几个要素：
+
+1）连接工厂。连接工厂（ConnectionFactory）是由管理员创建，并绑定到[JNDI](https://baike.baidu.com/item/JNDI)树中。客户端使用JNDI查找连接工厂，然后利用连接工厂创建一个JMS连接。
+
+2）JMS连接。JMS连接（Connection）表示JMS客户端和服务器端之间的一个活动的连接，是由客户端通过调用连接工厂的方法建立的。
+
+3）JMS会话。JMS会话（Session）表示JMS客户与JMS服务器之间的会话状态。JMS会话建立在JMS连接上，表示客户与服务器之间的一个会话线程。
+
+4）JMS目的。JMS目的（Destination），又称为[消息队列](https://baike.baidu.com/item/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97)，是实际的消息源。
+
+5）JMS生产者和消费者。生产者（Message Producer）和消费者（Message Consumer）对象由Session对象创建，用于发送和接收消息。
+
+6）JMS消息通常有两种类型：
+
+① 点对点（Point-to-Point）。在点对点的消息系统中，消息分发给一个单独的使用者。点对点消息往往与队列（javax.jms.Queue）相关联。
+
+② 发布/订阅（Publish/Subscribe）。发布/订阅消息系统支持一个事件驱动模型，消息生产者和消费者都参与消息的传递。生产者发布事件，而使用者订阅感兴趣的事件，并使用事件。该类型消息一般与特定的主题（javax.jms.Topic）关联。
+
+[![](https://gss1.bdstatic.com/9vo3dSag_xI4khGkpoWK1HF6hhy/baike/s%3D220/sign=57e3b3b80c33874498c5287e610dd937/adaf2edda3cc7cd92cd7d9313901213fb90e9164.jpg)](https://baike.baidu.com/pic/JMS/2836691/0/adaf2edda3cc7cd92cd7d9313901213fb90e9164?fr=lemma&ct=single)
+
+
+
+
+
+
+
