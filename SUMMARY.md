@@ -12,10 +12,10 @@
 * [Rabbitmq](rabbitmq.md)
   * [AMQP规范](rabbitmq/amqpgui-fan.md)
   * [安装配置](rabbitmq/an-zhuang-pei-zhi.md)
-  * 集群与镜像化队列
+  * [集群与镜像化队列](rabbitmq/ji-qun-yu-jing-xiang-hua-dui-lie.md)
   * [exchange/queue/bind](rabbitmq/exchangequeuebind.md)
   * [原生Java客户端使用](rabbitmq/yuan-sheng-java-ke-hu-duan-shi-yong.md)
   * [与Spring集成](rabbitmq/yu-spring-ji-cheng.md)
-  * ack机制
+  * [ack机制](rabbitmq/ackji-zhi.md)
   * 持久化机制
 
