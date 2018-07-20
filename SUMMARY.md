@@ -17,5 +17,5 @@
   * [原生Java客户端使用](rabbitmq/yuan-sheng-java-ke-hu-duan-shi-yong.md)
   * [与Spring集成](rabbitmq/yu-spring-ji-cheng.md)
   * [ack机制](rabbitmq/ackji-zhi.md)
-  * 持久化机制
+  * [持久化机制](rabbitmq/chi-jiu-hua-ji-zhi.md)
 
