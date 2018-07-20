@@ -14,9 +14,5 @@ _JMS规范教程.pdf_
 
 Java message Service 官方文档  [https://en.wikipedia.org/wiki/Java\_Message\_Service](https://en.wikipedia.org/wiki/Java_Message_Service)
 
-
-
-代码示例：github下的springboot-master下有具体连接，后续会补充上
-
-
+代码示例： [https://github.com/tuonioooo?tab=repositories](https://github.com/tuonioooo?tab=repositories)
 
