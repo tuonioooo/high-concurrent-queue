@@ -14,7 +14,7 @@
   * [安装配置](rabbitmq/an-zhuang-pei-zhi.md)
   * 集群与镜像化队列
   * exchange/queue/bind
-  * 原生Java客户端使用
+  * [原生Java客户端使用](rabbitmq/yuan-sheng-java-ke-hu-duan-shi-yong.md)
   * 与Spring集成
   * ack机制
   * 持久化机制
