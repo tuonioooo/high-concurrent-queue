@@ -253,9 +253,16 @@ kahaDB的持久化机制同样是基于日志文件，索引和缓存。
 
 配置方式：
 
-| 12345 | `<persistenceAdapter><kahaDBdirectory="${activemq.data}/activemq-data" journalMaxFileLength="16mb"/></persistenceAdapter>directory : 指定持久化消息的存储目录journalMaxFileLength : 指定保存消息的日志文件大小，具体根据你的实际应用配置 　` |
-| :--- | :--- |
+```
+<persistenceAdapter>
+    <kahaDB directory="${activemq.data}/activemq-data" journalMaxFileLength="16mb"/>
+</persistenceAdapter>
 
+```
+
+> directory : 指定持久化消息的存储目录
+
+> journalMaxFileLength : 指定保存消息的日志文件大小，具体根据你的实际应用配置
 
 **（1）KahaDB主要特性**  
 1、日志形式存储消息；  
@@ -283,8 +290,6 @@ Btree索引会根据MessageID创建索引，用于快速的查找消息。这个
 在db.data文件中保存消息日志中消息的元数据，也是以B-Tree结构存储的，定时从Metadata cache更新数据。Metadata store中也会备份一些在消息日志中存在的信息，这样可以让Broker实例快速启动。  
 即便metadata store文件被破坏或者误删除了。broker可以读取Data logs恢复过来，只是速度会相对较慢些。
 
-
-
 * #### LevelDB方式
 
 从ActiveMQ 5.6版本之后，又推出了LevelDB的持久化引擎。
@@ -310,6 +315,14 @@ Btree索引会根据MessageID创建索引，用于快速的查找消息。这个
 虽然AMQ性能略高于Kaha DB方式，但是由于其重建索引时间过长，而且索引文件占用磁盘空间过大，所以已经不推荐使用。
 
 
+
+### 参考文档：
+
+[https://www.cnblogs.com/binyue/p/5371479.html](https://www.cnblogs.com/binyue/p/5371479.html)
+
+[https://www.cnblogs.com/madyina/p/4127312.html](https://www.cnblogs.com/madyina/p/4127312.html)
+
+[https://www.jianshu.com/p/deb1816271d1](https://www.jianshu.com/p/deb1816271d1)
 
 
 
