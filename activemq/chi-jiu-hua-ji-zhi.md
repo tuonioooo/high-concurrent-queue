@@ -244,7 +244,72 @@ D:\ActiveMQ\apache-activemq\lib目录下。
 
 然后分别启动生产者和消费者，在MySQL中进行消息数据查看。
 
-#### 持久化为数据库
+* #### KahaDB方式
+
+KahaDB是从ActiveMQ 5.4开始默认的持久化插件，也是我们项目现在使用的持久化方式。
+
+KahaDb恢复时间远远小于其前身AMQ并且使用更少的数据文件，所以可以完全代替AMQ。  
+kahaDB的持久化机制同样是基于日志文件，索引和缓存。
+
+配置方式：
+
+| 12345 | `<persistenceAdapter><kahaDBdirectory="${activemq.data}/activemq-data" journalMaxFileLength="16mb"/></persistenceAdapter>directory : 指定持久化消息的存储目录journalMaxFileLength : 指定保存消息的日志文件大小，具体根据你的实际应用配置 　` |
+| :--- | :--- |
+
+
+**（1）KahaDB主要特性**  
+1、日志形式存储消息；  
+2、消息索引以B-Tree结构存储，可以快速更新；  
+3、完全支持JMS事务；  
+4、支持多种恢复机制；
+
+**（2）KahaDB的结构**
+
+消息存储在基于文件的数据日志中。如果消息发送成功，变标记为可删除的。系统会周期性的清除或者归档日志文件。  
+消息文件的位置索引存储在内存中，这样能快速定位到。定期将内存中的消息索引保存到metadata store中，避免大量消息未发送时，消息索引占用过多内存空间。
+
+![](https://images2015.cnblogs.com/blog/524341/201604/524341-20160412213813113-714659886.gif)
+
+**Data logs：**  
+Data logs用于存储消息日志，消息的全部内容都在Data logs中。  
+同AMQ一样，一个Data logs文件大小超过规定的最大值，会新建一个文件。同样是文件尾部追加，写入性能很快。  
+每个消息在Data logs中有计数引用，所以当一个文件里所有的消息都不需要了，系统会自动删除文件或放入归档文件夹。
+
+**Metadata cache ：**  
+缓存用于存放在线消费者的消息。如果消费者已经快速的消费完成，那么这些消息就不需要再写入磁盘了。  
+Btree索引会根据MessageID创建索引，用于快速的查找消息。这个索引同样维护持久化订阅者与Destination的关系，以及每个消费者消费消息的指针。
+
+**Metadata store**  
+在db.data文件中保存消息日志中消息的元数据，也是以B-Tree结构存储的，定时从Metadata cache更新数据。Metadata store中也会备份一些在消息日志中存在的信息，这样可以让Broker实例快速启动。  
+即便metadata store文件被破坏或者误删除了。broker可以读取Data logs恢复过来，只是速度会相对较慢些。
+
+
+
+* #### LevelDB方式
+
+从ActiveMQ 5.6版本之后，又推出了LevelDB的持久化引擎。
+
+目前默认的持久化方式仍然是KahaDB，不过LevelDB持久化性能高于KahaDB，可能是以后的趋势。
+
+在ActiveMQ 5.9版本提供了基于LevelDB和Zookeeper的数据复制方式，用于Master-slave方式的首选数据复制方案。
+
+* #### AMQ方式
+
+性能高于JDBC，写入消息时，会将消息写入日志文件，由于是顺序追加写，性能很高。为了提升性能，创建消息主键索引，并且提供缓存机制，进一步提升性能。每个日志文件的大小都是有限制的（默认32m，可自行配置）。  
+当超过这个大小，系统会重新建立一个文件。当所有的消息都消费完成，系统会删除这个文件或者归档（取决于配置）。  
+主要的缺点是AMQ Message会为每一个Destination创建一个索引，如果使用了大量的Queue，索引文件的大小会占用很多磁盘空间。而且由于索引巨大，一旦Broker崩溃，重建索引的速度会非常慢。
+
+配置片段如下：
+
+```
+<persistenceAdapter>
+     <amqPersistenceAdapter directory="${activemq.data}/activemq-data" maxFileLength="32mb"/>
+</persistenceAdapter>
+```
+
+虽然AMQ性能略高于Kaha DB方式，但是由于其重建索引时间过长，而且索引文件占用磁盘空间过大，所以已经不推荐使用。
+
+
 
 
 
