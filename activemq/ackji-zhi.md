@@ -22,12 +22,6 @@ ACK \(Acknowledgement）即是确认字符，在数据通信中，接收站发�
 
 Producer客户端使用来发送消息的， Consumer客户端用来消费消息；它们的协同中心就是ActiveMQ broker,broker也是让producer和consumer调用过程解耦的工具，最终实现了异步RPC/数据交换的功能。随着ActiveMQ的不断发展，支持了越来越多的特性，也解决开发者在各种场景下使用ActiveMQ的需求。比如producer支持异步调用；使用flow control机制让broker协同consumer的消费速率；consumer端可以使用prefetchACK来最大化消息消费的速率；提供"重发策略"等来提高消息的安全性等。在此我们不详细介绍。
 
-
-
-
-
-
-
 一条消息的生命周期如下:
 
 ![](http://dl2.iteye.com/upload/attachment/0094/2424/58b2e84f-1cba-30fd-99ae-e6c3a6620e12.jpg)
@@ -38,17 +32,15 @@ Producer客户端使用来发送消息的， Consumer客户端用来消费消息
 
 ![](http://dl2.iteye.com/upload/attachment/0094/2626/e69764da-fd5e-3cdb-a412-d17452f09063.jpg)
 
-```
- 这是一张很复杂，而且有些凌乱的图片；这张图片中简单的描述了:1\)producer端如何发送消息 2\) consumer端如何消费消息 3\) broker端如何调度。如果用文字来描述图示中的概念，恐怕一言难尽。图示中，提及到prefetchAck，以及消息同步、异步发送的基本逻辑；这对你了解下文中的ACK机制将有很大的帮助。
-```
+ 这是一张很复杂，而且有些凌乱的图片；这张图片中简单的描述了:1\\)producer端如何发送消息 2\\) consumer端如何消费消息 3\\) broker端如何调度。如果用文字来描述图示中的概念，恐怕一言难尽。图示中，提及到prefetchAck，以及消息同步、异步发送的基本逻辑；这对你了解下文中的ACK机制将有很大的帮助。
 
 **二. optimizeACK**
 
-```
 "可优化的ACK"，这是ActiveMQ对于consumer在消息消费时，对消息ACK的优化选项，也是consumer端最重要的优化参数之一，你可以通过如下方式开启:
 
-1\) 在brokerUrl中增加如下查询字符串： 
-```
+
+
+1\\) 在brokerUrl中增加如下查询字符串：
 
 ```
 String brokerUrl = "tcp://localhost:61616?" + 
@@ -58,9 +50,7 @@ String brokerUrl = "tcp://localhost:61616?" +
 ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(brokerUrl);
 ```
 
-```
-2\) 在destinationUri中，增加如下查询字符串：
-```
+2\\) 在destinationUri中，增加如下查询字符串：
 
 ```
 String queueName = "test-queue?customer.prefetchSize=100";
@@ -70,16 +60,27 @@ Destination queue = session.createQueue(queueName);
 
 我们需要在brokerUrl指定optimizeACK选项，在destinationUri中指定prefetchSize\(预获取\)选项，其中brokerUrl参数选项是全局的，即当前factory下所有的connection/session/consumer都会默认使用这些值；而destinationUri中的选项，只会在使用此destination的consumer实例中有效；如果同时指定，brokerUrl中的参数选项值将会被覆盖。optimizeAck表示是否开启“优化ACK”，只有在为true的情况下，prefetchSize\(下文中将会简写成prefetch\)以及optimizeAcknowledgeTimeout参数才会有意义。此处需要注意"optimizeAcknowledgeTimeout"选项只能在brokerUrl中配置。
 
-```
 prefetch值建议在destinationUri中指定，因为在brokerUrl中指定比较繁琐；在brokerUrl中，queuePrefetchSize和topicPrefetchSize都需要单独设定："&jms.prefetchPolicy.queuePrefetch=12&jms.prefetchPolicy.topicPrefetch=12"等来逐个指定。
 
 
 
-如果prefetchACK为true，那么prefetch必须大于0；当prefetchACK为false时，你可以指定prefetch为0以及任意大小的正数。不过，当prefetch=0是，表示consumer将使用PULL\(拉取\)的方式从broker端获取消息，broker端将不会主动push消息给client端，直到client端发送PullCommand时；当prefetch&gt;0时，就开启了broker push模式，此后只要当client端消费且ACK了一定的消息之后，会立即push给client端多条消息。
 
 
 
-当consumer端使用receive\(\)方法同步获取消息时，prefetch可以为0和任意正值；当prefetch=0时，那么receive\(\)方法将会首先发送一个PULL指令并阻塞，直到broker端返回消息为止，这也意味着消息只能逐个获取\(类似于Request&lt;-&gt;Response\)，这也是Activemq中PULL消息模式；当prefetch &gt; 0时，broker端将会批量push给client 一定数量的消息\(&lt;= prefetch\),client端会把这些消息\(unconsumedMessage\)放入到本地的队列中，只要此队列有消息，那么receive方法将会立即返回，当一定量的消息ACK之后，broker端会继续批量push消息给client端。
+
+如果prefetchACK为true，那么prefetch必须大于0；当prefetchACK为false时，你可以指定prefetch为0以及任意大小的正数。不过，当prefetch=0是，表示consumer将使用PULL\\(拉取\\)的方式从broker端获取消息，broker端将不会主动push消息给client端，直到client端发送PullCommand时；当prefetch&gt;0时，就开启了broker push模式，此后只要当client端消费且ACK了一定的消息之后，会立即push给client端多条消息。
+
+
+
+
+
+
+
+当consumer端使用receive\\(\\)方法同步获取消息时，prefetch可以为0和任意正值；当prefetch=0时，那么receive\\(\\)方法将会首先发送一个PULL指令并阻塞，直到broker端返回消息为止，这也意味着消息只能逐个获取\\(类似于Request&lt;-&gt;Response\\)，这也是Activemq中PULL消息模式；当prefetch &gt; 0时，broker端将会批量push给client 一定数量的消息\\(&lt;= prefetch\\),client端会把这些消息\\(unconsumedMessage\\)放入到本地的队列中，只要此队列有消息，那么receive方法将会立即返回，当一定量的消息ACK之后，broker端会继续批量push消息给client端。
+
+
+
+
 
 
 
@@ -87,25 +88,51 @@ prefetch值建议在destinationUri中指定，因为在brokerUrl中指定比较�
 
 
 
-此外，我们还可以brokerUrl中配置“redelivery”策略，比如当一条消息处理异常时，broker端可以重发的最大次数；和下文中提到REDELIVERED\_ACK\_TYPE互相协同。当消息需要broker端重发时，consumer会首先在本地的“deliveredMessage队列”\(Consumer已经接收但还未确认的消息队列\)删除它，然后向broker发送“REDELIVERED\_ACK\_TYPE”类型的确认指令，broker将会把指令中指定的消息重新添加到pendingQueue\(亟待发送给consumer的消息队列\)中，直到合适的时机，再次push给client。
 
 
 
-到目前为止，或许你知道了optimizeACK和prefeth的大概意义，不过我们可能还会有些疑惑！！optimizeACK和prefetch配合，将会达成一个高效的消息消费模型：**批量获取消息，并“延迟”确认\(ACK\)**。**prefetch表达了“批量获取”消息的语义**，broker端主动的批量push多条消息给client端，总比client多次发送PULL指令然后broker返回一条消息的方式要优秀很多，它不仅减少了client端在获取消息时阻塞的次数和阻塞的时间，还能够大大的减少网络开支。**optimizeACK表达了“延迟确认”的语义\(ACK时机\)**，client端在消费消息后暂且不发送ACK，而是把它缓存下来\(pendingACK\)，等到这些消息的条数达到一定阀值时，只需要通过一个ACK指令把它们全部确认；这比对每条消息都逐个确认，在性能上要提高很多。由此可见，prefetch优化了消息传送的性能，optimizeACK优化了消息确认的性能。
+
+此外，我们还可以brokerUrl中配置“redelivery”策略，比如当一条消息处理异常时，broker端可以重发的最大次数；和下文中提到REDELIVERED\\_ACK\\_TYPE互相协同。当消息需要broker端重发时，consumer会首先在本地的“deliveredMessage队列”\\(Consumer已经接收但还未确认的消息队列\\)删除它，然后向broker发送“REDELIVERED\\_ACK\\_TYPE”类型的确认指令，broker将会把指令中指定的消息重新添加到pendingQueue\\(亟待发送给consumer的消息队列\\)中，直到合适的时机，再次push给client。
 
 
 
-当consumer端消息消费的速率很高\(相对于producer生产消息\)，而且消息的数量也很大时\(比如消息源源不断的生产\)，我们使用optimizeACK + prefetch将会极大的提升consumer的性能。不过反过来：
-
-1\) 如果consumer端消费速度很慢\(对消息的处理是耗时的\)，过大的prefetchSize，并不能有效的提升性能，反而不利于consumer端的负载均衡\(只针对queue\)；按照良好的设计准则，当consumer消费速度很慢时，我们通常会部署多个consumer客户端，并使用较小的prefetch，同时关闭optimizeACK，可以让消息在多个consumer间“负载均衡”\(即均匀的发送给每个consumer\)；如果较大的prefetchSize，将会导致broker一次性push给client大量的消息，但是这些消息需要很久才能ACK\(消息积压\)，而且在client故障时，还会导致这些消息的重发。
 
 
 
-2\) 如果consumer端消费速度很快，但是producer端生成消息的速率较慢，比如生产者10秒钟生成10条消息，但是consumer一秒就能消费完毕，而且我们还部署了多个consumer！！这种场景下，建议开启optimizeACK，但是需要设置的prefetchSize不能过大；这样可以保证每个consumer都能有"活干"，否则将会出现一个consumer非常忙碌，但是其他consumer几乎收不到消息。
+
+到目前为止，或许你知道了optimizeACK和prefeth的大概意义，不过我们可能还会有些疑惑！！optimizeACK和prefetch配合，将会达成一个高效的消息消费模型：\*\*批量获取消息，并“延迟”确认\\(ACK\\)\*\*。\*\*prefetch表达了“批量获取”消息的语义\*\*，broker端主动的批量push多条消息给client端，总比client多次发送PULL指令然后broker返回一条消息的方式要优秀很多，它不仅减少了client端在获取消息时阻塞的次数和阻塞的时间，还能够大大的减少网络开支。\*\*optimizeACK表达了“延迟确认”的语义\\(ACK时机\\)\*\*，client端在消费消息后暂且不发送ACK，而是把它缓存下来\\(pendingACK\\)，等到这些消息的条数达到一定阀值时，只需要通过一个ACK指令把它们全部确认；这比对每条消息都逐个确认，在性能上要提高很多。由此可见，prefetch优化了消息传送的性能，optimizeACK优化了消息确认的性能。
 
 
 
-3\) 如果消息很重要，特别是不愿意接收到”redelivery“的消息，那么我们需要将optimizeACK=false，prefetchSize=1
+
+
+
+
+当consumer端消息消费的速率很高\\(相对于producer生产消息\\)，而且消息的数量也很大时\\(比如消息源源不断的生产\\)，我们使用optimizeACK + prefetch将会极大的提升consumer的性能。不过反过来：
+
+
+
+1\\) 如果consumer端消费速度很慢\\(对消息的处理是耗时的\\)，过大的prefetchSize，并不能有效的提升性能，反而不利于consumer端的负载均衡\\(只针对queue\\)；按照良好的设计准则，当consumer消费速度很慢时，我们通常会部署多个consumer客户端，并使用较小的prefetch，同时关闭optimizeACK，可以让消息在多个consumer间“负载均衡”\\(即均匀的发送给每个consumer\\)；如果较大的prefetchSize，将会导致broker一次性push给client大量的消息，但是这些消息需要很久才能ACK\\(消息积压\\)，而且在client故障时，还会导致这些消息的重发。
+
+
+
+
+
+
+
+2\\) 如果consumer端消费速度很快，但是producer端生成消息的速率较慢，比如生产者10秒钟生成10条消息，但是consumer一秒就能消费完毕，而且我们还部署了多个consumer！！这种场景下，建议开启optimizeACK，但是需要设置的prefetchSize不能过大；这样可以保证每个consumer都能有"活干"，否则将会出现一个consumer非常忙碌，但是其他consumer几乎收不到消息。
+
+
+
+
+
+
+
+3\\) 如果消息很重要，特别是不愿意接收到”redelivery“的消息，那么我们需要将optimizeACK=false，prefetchSize=1
+
+
+
+
 
 
 
@@ -113,8 +140,11 @@ prefetch值建议在destinationUri中指定，因为在brokerUrl中指定比较�
 
 
 
-prefetch值默认为1000，当然这个值可能在很多场景下是偏大的；我们暂且不考虑ACK模式\(参见下文\)，通常情况下，我们只需要简单的统计出单个consumer每秒的最大消费消息数即可，比如一个consumer每秒可以处理100个消息，我们期望consumer端每2秒确认一次，那么我们的prefetchSize可以设置为100 \* 2 /0.65大概为300。无论如何设定此值，client持有的消息条数最大为：prefetch + “DELIVERED\_ACK\_TYPE消息条数”\(DELIVERED\_ACK\_TYPE参见下文\)
-```
+
+
+
+
+prefetch值默认为1000，当然这个值可能在很多场景下是偏大的；我们暂且不考虑ACK模式\\(参见下文\\)，通常情况下，我们只需要简单的统计出单个consumer每秒的最大消费消息数即可，比如一个consumer每秒可以处理100个消息，我们期望consumer端每2秒确认一次，那么我们的prefetchSize可以设置为100 \\* 2 /0.65大概为300。无论如何设定此值，client持有的消息条数最大为：prefetch + “DELIVERED\\_ACK\\_TYPE消息条数”\\(DELIVERED\\_ACK\\_TYPE参见下文\\)
 
 **     即使当optimizeACK为true，也只会当session的ACK模式为AUTO\_ACKNOWLEDGE时才会生效**，即在其他类型的ACK模式时consumer端仍然不会“延迟确认”，即:
 
