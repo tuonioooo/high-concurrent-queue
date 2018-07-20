@@ -13,9 +13,9 @@
   * [AMQP规范](rabbitmq/amqpgui-fan.md)
   * [安装配置](rabbitmq/an-zhuang-pei-zhi.md)
   * 集群与镜像化队列
-  * exchange/queue/bind
+  * [exchange/queue/bind](rabbitmq/exchangequeuebind.md)
   * [原生Java客户端使用](rabbitmq/yuan-sheng-java-ke-hu-duan-shi-yong.md)
-  * 与Spring集成
+  * [与Spring集成](rabbitmq/yu-spring-ji-cheng.md)
   * ack机制
   * 持久化机制
 
