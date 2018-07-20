@@ -6,8 +6,6 @@ Consumer可能需要一段时间才能处理完收到的数据。如果在这个
 
 为了保证数据不被丢失，RabbitMQ支持消息确认机制，即ack。为了保证数据能被正确处理而不仅仅是被Consumer收到，我们就不能采用no-ack或者auto-ack，我们需要手动ack\(manual-ack\)。在数据处理完成后手动发送ack，这个时候Server才将Message删除。
 
-
-
 ## 如何设置
 
 * ## action in java
@@ -35,7 +33,6 @@ String basicConsume(String queue, boolean autoAck, Consumer callback);
 
 ```
 sudo rabbitmqctl list_queues name messages_ready messages_unacknowledged
-
 ```
 
 ## ACK其他作用
@@ -106,19 +103,11 @@ channel.basicConsume(QUEUE_NAME, false, null, anotherConsumer);
 > 2. 即使没有ACK，RabbitMQ也不是立即不发送消息到没有ack的consumer，其实这很好理解，既然ack可以延时，那Server完全有理由相信consumer回复只是比较慢而已，它不是不回。所以继续会发第二条。
 > 3. 本来以为是2号消费者重启过程中，1号消费者消费过快，等2号消费者起起来时，消息已经被1号消费者消费完，其实不是，就算给1号消费者加上延迟ACK，2号消费者也不会再接收消息。应该是RabbitMQ内部的某种记忆功能，将2号消费者没有ACK的消息，直接归给1号消费者消费。
 > 4. 再次执行生产者，此时2号消费者任然可以重新接收消息。
-> 5. 设置1号消费者prefetch=1\(
->    `channel.basicQos(1)`
->    \)，2号消费者不做任何设置，然后两个消费者都订阅同一队列，开启acknowledge机制。RabbitMQ向1号消费者投递了一条消息后，消费者未对该消息进行ack，RabbitMQ不会再向该消费者投递消息，剩下的消息均投递给了2号消费者。这和第二个试验结果不同。
+> 5. 设置1号消费者prefetch=1\(`channel.basicQos(1)`\)，2号消费者不做任何设置，然后两个消费者都订阅同一队列，开启acknowledge机制。RabbitMQ向1号消费者投递了一条消息后，消费者未对该消息进行ack，RabbitMQ不会再向该消费者投递消息，剩下的消息均投递给了2号消费者。这和第二个试验结果不同。
 
 ### 补充 {#补充}
 
 > 我们知道，有了ACK机制，当消费者挂掉后，消息可以不丢失，但是如果RabbitMQ Server挂掉了呢？这就需要持久化机制。如果没有设置相应的持久化，会在Server退出后丢掉Exchange和Queue。
-
-
-
-
-
-
 
 
 
