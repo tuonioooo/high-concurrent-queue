@@ -14,6 +14,8 @@
 
 ### ActiveMQ的几种存储模式选择
 
+* AMQ消息存储 \(默认的消息存储\)
+
 * KahaDB 消息存储\(提供容量的提升和恢复能力\) 基于文件支持事务的消息存储器，是一个可靠，高性能，可扩展的消息存储器
 
 * JDBC 消息存储\(消息基于JDBC存储\)
@@ -40,7 +42,9 @@ D:\ActiveMQ\apache-activemq\conf\activemq.xml在越80行会发现默认的配置
 
 注意这里使用的是kahaDB，是一个基于文件支持事务的消息存储器，是一个可靠，高性能，可扩展的消息存储器。
 
-     他的设计初衷就是使用简单并尽可能的快。KahaDB的索引使用一个transaction log，并且所有的destination只使用一个index，有人测试表明：如果用于生产环境，支持1万个active connection，每个connection有一个独立的queue。该表现已经足矣应付大部分的需求。
+```
+ 他的设计初衷就是使用简单并尽可能的快。KahaDB的索引使用一个transaction log，并且所有的destination只使用一个index，有人测试表明：如果用于生产环境，支持1万个active connection，每个connection有一个独立的queue。该表现已经足矣应付大部分的需求。
+```
 
 然后再发送消息的时候改变第二个参数为：
 
@@ -212,14 +216,14 @@ D:\ActiveMQ\apache-activemq\lib目录下。
 
 > **activemq\_acks：**用于存储订阅关系。如果是持久化Topic，订阅者和服务器的订阅关系在这个表保存。
 >
-> CONTAINER：消息的目的地
-> SUB\_DEST：如果是使用static集群，这个字段会有集群其他系统的信息
-> CLIENT\_ID：每个订阅者客户端ID
-> SUB\_NAME：订阅者名称
-> SELECTOR：选择器，可以选择只消费满足条件的消息。条件可以用自定义属性实现，可支持多属性and和or操作
-> LAST\_ACKED\_ID：记录消费过的消息的id。
-> PRIORITY：优先级
-> XID：
+> CONTAINER：消息的目的地  
+> SUB\_DEST：如果是使用static集群，这个字段会有集群其他系统的信息  
+> CLIENT\_ID：每个订阅者客户端ID  
+> SUB\_NAME：订阅者名称  
+> SELECTOR：选择器，可以选择只消费满足条件的消息。条件可以用自定义属性实现，可支持多属性and和or操作  
+> LAST\_ACKED\_ID：记录消费过的消息的id。  
+> PRIORITY：优先级  
+> XID：  
 > **activemq\_lock**：用于记录哪一个Broker是Master Broker。这张表只有在集群环境中才会用到，在集群中，只能有一个Broker来接收消息，那么这个Broker就是主Broker，其他的作为从Broker，用来备份等待。
 >
 > ID：主键
@@ -230,19 +234,17 @@ D:\ActiveMQ\apache-activemq\lib目录下。
 >
 > **activemq\_msgs**：用于存储消息，Topic和Queue消息都会保存在这张表中
 >
-> ID：自增主键
-> CONTAINER：容器名称
-> MSGID\_PROD：消息发送者客户端的主键
-> MSGID\_SEQ：发送消息的顺序，msgid\_prod+msg\_seq可以组成jms的messageid
-> EXPIRATION：消息的过期时间，存储的是从1970-01-01到现在的毫秒数
-> MSG：消息本体的java序列化对象的二进制数据
+> ID：自增主键  
+> CONTAINER：容器名称  
+> MSGID\_PROD：消息发送者客户端的主键  
+> MSGID\_SEQ：发送消息的顺序，msgid\_prod+msg\_seq可以组成jms的messageid  
+> EXPIRATION：消息的过期时间，存储的是从1970-01-01到现在的毫秒数  
+> MSG：消息本体的java序列化对象的二进制数据  
 > PRIORITY：优先级，从0-9，数值越大优先级越高
 
 然后分别启动生产者和消费者，在MySQL中进行消息数据查看。
 
-
-
-
+#### 持久化为数据库
 
 
 
