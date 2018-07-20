@@ -18,7 +18,7 @@ _Java message Service 官方文档  _
 
 _ActiveMQ in Action中文版_
 
-链接：https://pan.baidu.com/s/1Le8WfNIjwwvOXFV43C8HZw 密码：odtj
+链接：[https://pan.baidu.com/s/1Le8WfNIjwwvOXFV43C8HZw](https://pan.baidu.com/s/1Le8WfNIjwwvOXFV43C8HZw) 密码：odtj
 
-代码示例： [https://github.com/tuonioooo?tab=repositories](https://github.com/tuonioooo?tab=repositories)
+github代码示例： [https://github.com/tuonioooo?tab=repositories](https://github.com/tuonioooo?tab=repositories)
 
