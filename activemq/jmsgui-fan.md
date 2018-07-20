@@ -116,15 +116,15 @@ ConnectionFactory 接口（连接工厂）
 
 Connection 接口（连接）
 
-连接代表了应用程序和[消息服务器](https://baike.baidu.com/item/%E6%B6%88%E6%81%AF%E6%9C%8D%E5%8A%A1%E5%99%A8)之间的通信链路。在获得了连接工厂后，就可以创建一个与JMS提供者的连接。根据不同的连接类型，连接允许用户创建会话，以发送和接收队列和主题到目标。
+连接代表了应用程序和[消息服务器](https://baike.baidu.com/item/消息服务器)之间的通信链路。在获得了连接工厂后，就可以创建一个与JMS提供者的连接。根据不同的连接类型，连接允许用户创建会话，以发送和接收队列和主题到目标。
 
 Destination 接口（目标）
 
-目标是一个包装了消息目标[标识符](https://baike.baidu.com/item/%E6%A0%87%E8%AF%86%E7%AC%A6)的被管对象，消息目标是指消息发布和接收的地点，或者是队列，或者是主题。JMS管理员创建这些对象，然后用户通过JNDI发现它们。和连接工厂一样，管理员可以创建两种类型的目标，点对点模型的队列，以及发布者/订阅者模型的主题。
+目标是一个包装了消息目标[标识符](https://baike.baidu.com/item/标识符)的被管对象，消息目标是指消息发布和接收的地点，或者是队列，或者是主题。JMS管理员创建这些对象，然后用户通过JNDI发现它们。和连接工厂一样，管理员可以创建两种类型的目标，点对点模型的队列，以及发布者/订阅者模型的主题。
 
 Session 接口（会话）
 
-表示一个单线程的上下文，用于发送和接收消息。由于会话是单线程的，所以消息是连续的，就是说消息是按照发送的顺序一个一个接收的。会话的好处是它支持[事务](https://baike.baidu.com/item/%E4%BA%8B%E5%8A%A1)。如果用户选择了事务支持，会话上下文将保存一组消息，直到事务被提交才发送这些消息。在提交事务之前，用户可以使用回滚操作取消这些消息。一个会话允许用户创建消息，生产者来发送消息，消费者来接收消息。
+表示一个单线程的上下文，用于发送和接收消息。由于会话是单线程的，所以消息是连续的，就是说消息是按照发送的顺序一个一个接收的。会话的好处是它支持[事务](https://baike.baidu.com/item/事务)。如果用户选择了事务支持，会话上下文将保存一组消息，直到事务被提交才发送这些消息。在提交事务之前，用户可以使用回滚操作取消这些消息。一个会话允许用户创建消息，生产者来发送消息，消费者来接收消息。
 
 MessageConsumer 接口（消息消费者）
 
@@ -145,6 +145,52 @@ Message 接口（消息）
 一个消息体（可选）：允许用户创建五种类型的消息（文本消息，映射消息，字节消息，流消息和对象消息）。
 
 消息接口非常灵活，并提供了许多方式来定制消息的内容。
+
+
+
+## 提供者
+
+[![](https://gss3.bdstatic.com/-Po3dSag_xI4khGkpoWK1HF6hhy/baike/s%3D220/sign=2570f043d109b3deefbfe36afcbf6cd3/7c1ed21b0ef41bd5de50bfdf51da81cb39db3d9d.jpg "JMS流程图")](https://baike.baidu.com/pic/JMS/2836691/0/43e6c733bbabb358ad4b5ffe?fr=lemma&ct=single)
+
+JMS流程图
+
+要使用Java消息服务，你必须要有一个JMS提供者，管理会话和队列。既有开源的提供者也有专有的提供者。
+
+开源的提供者包括：
+
+Apache ActiveMQ
+
+JBoss 社区所研发的 HornetQ
+
+Joram
+
+Coridan的MantaRay
+
+The OpenJMS Group的OpenJMS
+
+专有的提供者包括：
+
+BEA的BEA WebLogic Server JMS
+
+TIBCO Software的EMS
+
+GigaSpaces Technologies的GigaSpaces
+
+Softwired 2006的iBus
+
+IONA Technologies的IONA JMS
+
+SeeBeyond的IQManager（2005年8月被Sun Microsystems并购）
+
+webMethods的JMS+ -
+
+my-channels的Nirvana
+
+Sonic Software的SonicMQ
+
+SwiftMQ的SwiftMQ
+
+IBM的WebSphere MQ
 
 
 
