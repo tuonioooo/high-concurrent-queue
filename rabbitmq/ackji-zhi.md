@@ -8,7 +8,7 @@ Consumer可能需要一段时间才能处理完收到的数据。如果在这个
 
 ## 如何设置
 
-* ## action in java
+* ##### action in java
 
 ```
 # Channel.java，将autoAck设置为false即可。
