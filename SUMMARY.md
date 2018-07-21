@@ -18,4 +18,12 @@
   * [与Spring集成](rabbitmq/yu-spring-ji-cheng.md)
   * [ack机制](rabbitmq/ackji-zhi.md)
   * [持久化机制](rabbitmq/chi-jiu-hua-ji-zhi.md)
+* [实战场景](shi-zhan-chang-jing.md)
+  * 系统解耦
+  * 定时消息
+  * 消峰填谷
+  * 分布式事务
+  * mq-rpc
+  * 消息分发
+* kafka
 
