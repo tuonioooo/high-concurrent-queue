@@ -26,5 +26,5 @@
   * mq-rpc
   * 消息分发
 * [kafka](kafka.md)
-  * kafka实战
+  * [kafka实战](kafka/kafkashi-zhan.md)
 
