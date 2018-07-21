@@ -25,5 +25,6 @@
   * 分布式事务
   * mq-rpc
   * 消息分发
-* kafka
+* [kafka](kafka.md)
+  * kafka实战
 
