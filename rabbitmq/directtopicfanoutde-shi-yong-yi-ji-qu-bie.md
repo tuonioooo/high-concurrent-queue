@@ -224,7 +224,6 @@ public class Consumer {
        }
    }
 }
-
 ```
 
 ##### 生产端：
@@ -270,7 +269,6 @@ public class Producer {
        connection.close();
    }
 }
-
 ```
 
 \#运行效果：可以看到以testTopic.开头的所有routingkey都匹配成功了，有四条数据。
@@ -365,7 +363,6 @@ public class Consumer {
         }
     }
 }
-
 ```
 
 ##### 生产端：
@@ -406,8 +403,10 @@ public class Producer {
         connection.close();
     }
 }
-
 ```
 
+##### 总结：
 
+fanout交换机不需要routingkey绑定，和路由没有关系，它是直接绑定到队列的。  
+fanout交换机直接绑定了队列，没有经过routingkey进行匹配之类的，相对来说是所有交换机中最快的。
 
