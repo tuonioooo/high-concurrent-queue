@@ -9,11 +9,9 @@
 * 通过AMQP事务机制实现，这也是AMQP协议层面提供的解决方案；
 * 通过将channel设置成confirm模式来实现；
 
+### 一.[**消息确认机制\(AMQP事务\)**](/rabbitmq/rabbitmq2014-xiao-xi-que-ren-ji-523628-amqp-shi-52a129.md)
 
-
-## 一.[**消息确认机制\(AMQP事务\)**](/rabbitmq/rabbitmq2014-xiao-xi-que-ren-ji-523628-amqp-shi-52a129.md)
-
-## 二.[**消息确认机制\(Confirm模式\)**](/rabbitmq/rabbitmq2014-xiao-xi-que-ren-jin-zhi/xiao-xi-que-ren-ji-523628-confirm-mo-5f0f29.md)
+### 二.[**消息确认机制\(Confirm模式\)**](/rabbitmq/rabbitmq2014-xiao-xi-que-ren-jin-zhi/xiao-xi-que-ren-ji-523628-confirm-mo-5f0f29.md)
 
 
 
