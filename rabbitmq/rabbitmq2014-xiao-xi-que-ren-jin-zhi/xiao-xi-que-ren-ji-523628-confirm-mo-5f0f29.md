@@ -8,7 +8,6 @@
 
 ### **一.生产者\(Producer\)的Confirm模式**
 
-  
 通过生产者的确认模式我们是要保证消息准确达到Broker端，而与AMQP事务不同的是Confirm是针对一条消息的，而事务是可以针对多条消息的。
 
 发送原理图大致如下：
@@ -33,5 +32,36 @@ Confirm模式最大的好处在于它是异步的，一旦发布一条消息，�
 
 普通Confirm模式：每发送一条消息后，调用waitForConfirms\(\)方法，等待服务器端Confirm。实际上是一种串行Confirm了，每publish一条消息之后就等待服务端Confirm，如果服务端返回false或者超时时间内未返回，客户端进行消息重传；  
 批量Confirm模式：批量Confirm模式，每发送一批消息之后，调用waitForConfirms\(\)方法，等待服务端Confirm，这种批量确认的模式极大的提高了Confirm效率，但是如果一旦出现Confirm返回false或者超时的情况，客户端需要将这一批次的消息全部重发，这会带来明显的重复消息，如果这种情况频繁发生的话，效率也会不升反降；  
-异步Confirm模式：提供一个回调方法，服务端Confirm了一条或者多条消息后Client端会回调这个方法。
+异步Confirm模式：提供一个回调方法，服务端Confirm了一条或者多条消息后Client端会回调这个方法。  
+**1、普通Confirm模式**
+
+```
+// 创建连接
+ConnectionFactory factory = new ConnectionFactory();
+factory.setUsername(config.UserName);
+factory.setPassword(config.Password);
+factory.setVirtualHost(config.VHost);
+factory.setHost(config.Host);
+factory.setPort(config.Port);
+Connection conn = factory.newConnection();
+// 创建信道
+Channel channel = conn.createChannel();
+// 声明队列
+channel.queueDeclare(config.QueueName, false, false, false, null);
+// 开启发送方确认模式
+channel.confirmSelect();
+String message = String.format("时间 => %s", new Date().getTime());
+channel.basicPublish("", config.QueueName, null, message.getBytes("UTF-8"));
+if (channel.waitForConfirms()) {
+    System.out.println("消息发送成功" );
+}
+```
+
+普通Confirm模式最简单，publish一条消息后，等待服务器端Confirm，如果服务端返回false或者超时时间内未返回，客户端就进行消息重传。
+
+
+
+
+
+
 
