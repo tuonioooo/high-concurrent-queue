@@ -210,8 +210,24 @@ Broker发送Tx.Commit-Ok
 2、结合Spring Boot来使用事务  
 我们一般在Spring Boot使用RabbitMQ，主要是通过封装的RabbitTemplate模板来实现消息的发送，这里主要也是分为两种情况，使用RabbitTemplate同步发送，或者异步发送。
 
-注意：发布确认和事务。\(两者不可同时使用\)在channel为事务时，不可引入确认模式；同样channel为确认模式下，不可使用事务。  
-所以在使用事务时，在application.properties中，需要将确认模式更改为false。
+**注意：发布确认和事务。\(两者不可同时使用\)在channel为事务时，不可引入确认模式；同样channel为确认模式下，不可使用事务。  
+所以在使用事务时，在application.properties中，需要将确认模式更改为false。spring.rabbitmq.publisher-confirms=false**
+
+通过设置RabbitTemplate的channelTransacted为true，来设置事务环境，使得可以使用RabbitMQ事务。如下：
+
+template.setChannelTransacted\(true\);
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
