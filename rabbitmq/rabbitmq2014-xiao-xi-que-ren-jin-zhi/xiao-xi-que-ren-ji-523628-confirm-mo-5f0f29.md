@@ -286,7 +286,6 @@ channel.addConfirmListener(new ConfirmListener() {
 
 ### **二、消费者\(Consumer\)的Confirm模式**
 
-  
 1、手动确认和自动确认  
 为了保证消息从队列可靠地到达消费者，RabbitMQ提供消息确认机制\(message acknowledgment\)。消费者在声明队列时，可以指定noAck参数，当noAck=false时，RabbitMQ会等待消费者显式发回ack信号后才从内存\(和磁盘，如果是持久化消息的话\)中移去消息。否则，RabbitMQ会在队列中消息被消费后立即删除它。
 
@@ -318,8 +317,7 @@ channel.basicAck\(envelope.getDeliveryTag\(\), false\);
 boolean autoAck = false;  
 channel.basicConsume\(QUEUE\_NAME, autoAck, consumer\);
 
-2、关于Spring Boot使用Consumer的Confirm模式  
-请参考rabbitmq-demo中的CallBackSender.java和CheckReceiver.java的实现。
 
-最后上面演示的demo，还是放在github，rabbitmq-demo。
+
+
 
