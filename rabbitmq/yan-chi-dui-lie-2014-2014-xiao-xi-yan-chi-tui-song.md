@@ -21,6 +21,70 @@
 
 ![](/assets/1543774-20190603131744576-736613516.png)
 
+```
+import org.springframework.amqp.core.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+ 
+import java.util.HashMap;
+import java.util.Map;
+ 
+@Configuration
+public class MQConfig {
+ 
+    public static final String LAZY_EXCHANGE = "Ex.LazyExchange";
+    public static final String LAZY_QUEUE = "MQ.LazyQueue";
+    public static final String LAZY_KEY = "lazy.#";
+ 
+    @Bean
+    public TopicExchange lazyExchange(){
+        //Map<String, Object> pros = new HashMap<>();
+        //设置交换机支持延迟消息推送
+        //pros.put("x-delayed-message", "topic");
+        TopicExchange exchange = new TopicExchange(LAZY_EXCHANGE, true, false, pros);
+        exchange.setDelayed(true);
+        return exchange;
+    }
+ 
+    @Bean
+    public Queue lazyQueue(){
+        return new Queue(LAZY_QUEUE, true);
+    }
+ 
+    @Bean
+    public Binding lazyBinding(){
+        return BindingBuilder.bind(lazyQueue()).to(lazyExchange()).with(LAZY_KEY);
+    }
+}
+
+```
+
+我们在 Exchange 的声明中可以设置`exchange.setDelayed(true)`来开启延迟队列，也可以设置为以下内容传入交换机声明的方法中，因为第一种方式的底层就是通过这种方式来实现的。
+
+```
+        //Map<String, Object> pros = new HashMap<>();
+        //设置交换机支持延迟消息推送
+        //pros.put("x-delayed-message", "topic");
+        TopicExchange exchange = new TopicExchange(LAZY_EXCHANGE, true, false, pros);
+
+```
+
+发送消息时我们需要指定延迟推送的时间，我们这里在发送消息的方法中传入参数 
+
+`new MessagePostProcessor()`
+
+ 是为了获得 
+
+`Message`
+
+对象，因为需要借助 
+
+`Message`
+
+对象的api 来设置延迟时间。
+
+
+
 
 
 
