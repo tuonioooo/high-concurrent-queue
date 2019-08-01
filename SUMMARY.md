@@ -19,6 +19,7 @@
   * [消息确认进制](rabbitmq/rabbitmq2014-xiao-xi-que-ren-jin-zhi.md)
     * [消息确认机制\(AMQP事务\)](rabbitmq/rabbitmq2014-xiao-xi-que-ren-ji-523628-amqp-shi-52a129.md)
     * [消息确认机制\(Confirm模式\)](rabbitmq/rabbitmq2014-xiao-xi-que-ren-jin-zhi/xiao-xi-que-ren-ji-523628-confirm-mo-5f0f29.md)
+  * [延迟队列——消息延迟推送](rabbitmq/yan-chi-dui-lie-2014-2014-xiao-xi-yan-chi-tui-song.md)
 * [实战场景](shi-zhan-chang-jing.md)
   * 系统解耦
   * 定时消息
