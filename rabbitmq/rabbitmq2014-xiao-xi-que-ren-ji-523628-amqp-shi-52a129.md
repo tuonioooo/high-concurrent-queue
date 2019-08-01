@@ -181,36 +181,31 @@ Broker发送Tx.Commit-Ok
 接下来我们通过抛出异常来模拟发送消息错误，进行事务回滚。更改发送信息代码为：
 
 ```
- try {
-            // 开启事务
-            channel.txSelect();
-            // 往队列中发出一条消息，使用rabbitmq默认交换机
-            channel.basicPublish("", QUEUE_NAME, null, message.getBytes());
-            // 除以0，模拟异常，使用rabbitmq默认交换机
-            int t = 1/0;
-            // 提交事务
-            channel.txCommit();
-        } catch (Exception e) {
-            e.printStackTrace();
-            // 事务回滚
-            channel.txRollback();
-        }
-
+ try {
+            // 开启事务
+            channel.txSelect();
+            // 往队列中发出一条消息，使用rabbitmq默认交换机
+            channel.basicPublish("", QUEUE_NAME, null, message.getBytes());
+            // 除以0，模拟异常，使用rabbitmq默认交换机
+            int t = 1/0;
+            // 提交事务
+            channel.txCommit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            // 事务回滚
+            channel.txRollback();
+        }
 ```
 
 这里我们通过除以0来模拟抛出异常，接着按同样的顺序运行代码。
 
 ![](/assets/20181227173033348.png)
 
+可以看见事务进行了回滚，同时我们在接收端也没有收到消息。
 
+通过上面我们可以知道事务确实能够解决消息的发送者和Broker之间消息的确认，只有当消息成功被服务端Broker接收，并且接受时，事务才能提交成功，不然我们便可以在捕获异常进行事务回滚操作同时进行消息重发。
 
-
-
-
-
-
-
-
+在上面的情况中，我们使用java原生代码来模拟事务进行发送，而在实际开发中，我们可能需要结合框架来完成。
 
 
 
