@@ -217,21 +217,18 @@ Broker发送Tx.Commit-Ok
 
 template.setChannelTransacted\(true\);
 
+在demo代码里面，主要是在config包下的RabbitConfig.java里的rabbitTemplateNew方法里面配置，如下：
 
+```
+@Bean
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+public RabbitTemplate rabbitTemplateNew() {
+        RabbitTemplate template = new RabbitTemplate(connectionFactory());
+        template.setChannelTransacted(true);
+        return template;
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+```
 
 
 
