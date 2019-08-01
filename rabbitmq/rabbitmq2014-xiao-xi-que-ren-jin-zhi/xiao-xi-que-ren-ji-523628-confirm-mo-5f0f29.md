@@ -6,7 +6,15 @@
 
 这里的Confirm模式可以分为两个方面来讲解，一是消息的生产者\(Producer\)的Confirm模式，另一个是消息的消费者\(Consumer\)的Confirm模式。
 
-  
+**一.生产者\(Producer\)的Confirm模式**  
+通过生产者的确认模式我们是要保证消息准确达到Broker端，而与AMQP事务不同的是Confirm是针对一条消息的，而事务是可以针对多条消息的。
+
+发送原理图大致如下：
+
+为了使用Confirm模式，client会发送confirm.select方法帧。通过是否设置了no-wait属性，来决定Broker端是否会以confirm.select-ok来进行应答。一旦在channel上使用confirm.select方法，channel就将处于Confirm模式。处于 transactional模式的channel不能再被设置成Confirm模式，反之亦然。
+
+这里与前面的一些文章介绍的一致，发布确认和事务两者不可同时引入，channel一旦设置为Confirm模式就不能为事务模式，为事务模式就不能为Confirm模式。
+
 在生产者将信道设置成Confirm模式，一旦信道进入Confirm模式，所有在该信道上面发布的消息都会被指派一个唯一的ID\(以confirm.select为基础从1开始计数\)，一旦消息被投递到所有匹配的队列之后，Broker就会发送一个确认给生产者（包含消息的唯一ID）,这就使得生产者知道消息已经正确到达目的队列了，如果消息和队列是可持久化的，那么确认消息会将消息写入磁盘之后发出，Broker回传给生产者的确认消息中deliver-tag域包含了确认消息的序列号，此外Broker也可以设置basic.ack的multiple域，表示到这个序列号之前的所有消息都已经得到了处理。
 
 Confirm模式最大的好处在于它是异步的，一旦发布一条消息，生产者应用程序就可以在等信道返回确认的同时继续发送下一条消息，当消息最终得到确认之后，生产者应用便可以通过回调方法来处理该确认消息，如果RabbitMQ因为自身内部错误导致消息丢失，就会发送一条basic.nack来代替basic.ack的消息，在这个情形下，basic.nack中各域值的含义与basic.ack中相应各域含义是相同的，同时requeue域的值应该被忽略。通过nack一条或多条消息， Broker表明自身无法对相应消息完成处理，并拒绝为这些消息的处理负责。在这种情况下，client可以选择将消息re-publish。
