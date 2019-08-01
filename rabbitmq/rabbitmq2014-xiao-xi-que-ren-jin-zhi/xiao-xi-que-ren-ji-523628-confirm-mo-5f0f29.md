@@ -284,7 +284,9 @@ channel.addConfirmListener(new ConfirmListener() {
 });
 ```
 
-二、消费者\(Consumer\)的Confirm模式  
+### **二、消费者\(Consumer\)的Confirm模式**
+
+  
 1、手动确认和自动确认  
 为了保证消息从队列可靠地到达消费者，RabbitMQ提供消息确认机制\(message acknowledgment\)。消费者在声明队列时，可以指定noAck参数，当noAck=false时，RabbitMQ会等待消费者显式发回ack信号后才从内存\(和磁盘，如果是持久化消息的话\)中移去消息。否则，RabbitMQ会在队列中消息被消费后立即删除它。
 
@@ -294,9 +296,9 @@ channel.addConfirmListener(new ConfirmListener() {
 
 手动确认主要并使用以下方法：
 
-basic.ack: 用于肯定确认，multiple参数用于多个消息确认。   
-basic.recover：是路由不成功的消息可以使用recovery重新发送到队列中。   
-basic.reject：是接收端告诉服务器这个消息我拒绝接收,不处理,可以设置是否放回到队列中还是丢掉，而且只能一次拒绝一个消息,官网中有明确说明不能批量拒绝消息，为解决批量拒绝消息才有了basicNack。   
+basic.ack: 用于肯定确认，multiple参数用于多个消息确认。  
+basic.recover：是路由不成功的消息可以使用recovery重新发送到队列中。  
+basic.reject：是接收端告诉服务器这个消息我拒绝接收,不处理,可以设置是否放回到队列中还是丢掉，而且只能一次拒绝一个消息,官网中有明确说明不能批量拒绝消息，为解决批量拒绝消息才有了basicNack。  
 basic.nack：可以一次拒绝N条消息，客户端可以设置basicNack方法的multiple参数为true，服务器会拒绝指定了delivery\_tag的所有未确认的消息\(tag是一个64位的long值，最大值是9223372036854775807\)。
 
 肯定的确认只是指导RabbitMQ将一个消息记录为已投递。basic.reject的否定确认具有相同的效果。 两者的差别在于：肯定的确认假设一个消息已经成功处理，而对立面则表示投递没有被处理，但仍然应该被删除。
@@ -314,8 +316,8 @@ channel.basicAck\(envelope.getDeliveryTag\(\), false\);
 
 // 关闭自动确认  
 boolean autoAck = false;  
-channel.basicConsume\(QUEUE\_NAME, autoAck, consumer\);  
-  
+channel.basicConsume\(QUEUE\_NAME, autoAck, consumer\);
+
 2、关于Spring Boot使用Consumer的Confirm模式  
 请参考rabbitmq-demo中的CallBackSender.java和CheckReceiver.java的实现。
 
