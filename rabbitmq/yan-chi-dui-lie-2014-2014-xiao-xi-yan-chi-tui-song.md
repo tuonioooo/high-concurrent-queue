@@ -79,24 +79,24 @@ import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
- 
+
 import java.util.Date;
- 
+
 @Component
 public class MQSender {
- 
+
     @Autowired
     private RabbitTemplate rabbitTemplate;
- 
+
     //confirmCallback returnCallback 代码省略，请参照上一篇
-  
+
     public void sendLazy(Object message){
         rabbitTemplate.setMandatory(true);
         rabbitTemplate.setConfirmCallback(confirmCallback);
         rabbitTemplate.setReturnCallback(returnCallback);
         //id + 时间戳 全局唯一
         CorrelationData correlationData = new CorrelationData("12345678909"+new Date());
- 
+
         //发送消息时指定 header 延迟时间
         rabbitTemplate.convertAndSend(MQConfig.LAZY_EXCHANGE, "lazy.boot", message,
                 new MessagePostProcessor() {
@@ -111,14 +111,81 @@ public class MQSender {
         }, correlationData);
     }
 }
-
 ```
 
-我们可以观察 `setDelay(Integer i)`底层代码，也是在 header 中设置 x-delay。等同于我们手动设置 header
+我们可以观察 `setDelay(Integer i)`底层代码，也是在 header 中设置 x-delay。等同于我们手动设置 header
 
 `message.getMessageProperties().setHeader("x-delay", "6000");`
 
+```
+/**
+ * Set the x-delay header.
+ * @param delay the delay.
+ * @since 1.6
+ */
+public void setDelay(Integer delay) {
+    if (delay == null || delay < 0) {
+        this.headers.remove(X_DELAY);
+    }
+    else {
+        this.headers.put(X_DELAY, delay);
+    }
+}
 
+```
+
+消费端进行消费
+
+```
+import com.rabbitmq.client.Channel;
+import org.springframework.amqp.rabbit.annotation.*;
+import org.springframework.amqp.support.AmqpHeaders;
+import org.springframework.stereotype.Component;
+ 
+import java.io.IOException;
+import java.util.Map;
+ 
+@Component
+public class MQReceiver {
+ 
+    @RabbitListener(queues = "MQ.LazyQueue")
+    @RabbitHandler
+    public void onLazyMessage(Message msg, Channel channel) throws IOException{
+        long deliveryTag = msg.getMessageProperties().getDeliveryTag();
+        channel.basicAck(deliveryTag, true);
+        System.out.println("lazy receive " + new String(msg.getBody()));
+ 
+    }
+
+```
+
+测试结果
+
+```
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+ 
+@SpringBootTest
+@RunWith(SpringRunner.class)
+public class MQSenderTest {
+ 
+    @Autowired
+    private MQSender mqSender;
+ 
+    @Test
+    public void sendLazy() throws  Exception {
+        String msg = "hello spring boot";
+ 
+        mqSender.sendLazy(msg + ":");
+    }
+}
+
+```
+
+果然在 6 秒后收到了消息 `lazy receive hello spring boot:`
 
 
 
