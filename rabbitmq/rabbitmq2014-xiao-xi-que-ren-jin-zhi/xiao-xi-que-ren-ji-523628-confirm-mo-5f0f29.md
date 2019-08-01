@@ -34,8 +34,6 @@ Confirm模式最大的好处在于它是异步的，一旦发布一条消息，�
 * **批量Confirm模式**：每发送一批消息之后，调用waitForConfirms\(\)方法，等待服务端Confirm，这种批量确认的模式极大的提高了Confirm效率，但是如果一旦出现Confirm返回false或者超时的情况，客户端需要将这一批次的消息全部重发，这会带来明显的重复消息，如果这种情况频繁发生的话，效率也会不升反降；
 * **异步Confirm模式**：提供一个回调方法，服务端Confirm了一条或者多条消息后Client端会回调这个方法。 
 
-
-
 **1、普通Confirm模式**
 
 ConfirmSender1.java：
@@ -106,7 +104,6 @@ public class ConfirmSender1 {
         connection.close();
     }
 }
-
 ```
 
 我们在代码中发送了5条消息到Broker端，每条消息发送后都会等待确认。
@@ -176,26 +173,41 @@ public class ConfirmReceiver1 {
 发送成功  
 发送成功  
 发送成功  
-执行waitForConfirms耗费时间: 181ms  
-  
-在RabbitMQ管理界面confirm队列里，我们可以查看到我们发送的5条消息数据。 
+执行waitForConfirms耗费时间: 181ms
 
-  
-在WireShark中也可以发现开启了Confirm模式，以及我们发送的5条消息。 
+在RabbitMQ管理界面confirm队列里，我们可以查看到我们发送的5条消息数据。
+
+在WireShark中也可以发现开启了Confirm模式，以及我们发送的5条消息。
 
 接着我们启动ConfirmReceiver.java，可以收到我们发送的具体消息：
 
- ConfirmReceiver1 waiting for messages. To exit press CTRL+C  
- ConfirmReceiver1  :  Confirm模式， 第1条消息  
- ConfirmReceiver1 Done! at 2018-08-04 14:58:27:0014  
- ConfirmReceiver1  :  Confirm模式， 第2条消息  
- ConfirmReceiver1 Done! at 2018-08-04 14:58:27:0016  
- ConfirmReceiver1  :  Confirm模式， 第3条消息  
- ConfirmReceiver1 Done! at 2018-08-04 14:58:27:0016  
- ConfirmReceiver1  :  Confirm模式， 第4条消息  
- ConfirmReceiver1 Done! at 2018-08-04 14:58:27:0017  
- ConfirmReceiver1  :  Confirm模式， 第5条消息  
- ConfirmReceiver1 Done! at 2018-08-04 14:58:27:0017
+ConfirmReceiver1 waiting for messages. To exit press CTRL+C  
+ ConfirmReceiver1  :  Confirm模式， 第1条消息  
+ ConfirmReceiver1 Done! at 2018-08-04 14:58:27:0014  
+ ConfirmReceiver1  :  Confirm模式， 第2条消息  
+ ConfirmReceiver1 Done! at 2018-08-04 14:58:27:0016  
+ ConfirmReceiver1  :  Confirm模式， 第3条消息  
+ ConfirmReceiver1 Done! at 2018-08-04 14:58:27:0016  
+ ConfirmReceiver1  :  Confirm模式， 第4条消息  
+ ConfirmReceiver1 Done! at 2018-08-04 14:58:27:0017  
+ ConfirmReceiver1  :  Confirm模式， 第5条消息  
+ ConfirmReceiver1 Done! at 2018-08-04 14:58:27:0017
+
+2、批量Confirm模式
+
+```
+channel.confirmSelect();
+for(int i=0;i<5;i++){
+     channel.basicPublish("", QUEUE_NAME, MessageProperties.PERSISTENT_BASIC, (" Confirm模式， 第" + (i + 1) + "条消息").getBytes());
+}
+if(channel.waitForConfirms()){
+    System.out.println("发送成功");
+}else{
+    // 进行消息重发
+}
+```
+
+
 
 
 
