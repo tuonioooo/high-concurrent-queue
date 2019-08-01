@@ -28,8 +28,10 @@ channel.txCommit();
 
 还是在原来的demo代码基础下，在sender和receiver包下分别新建TransactionSender1.java和TransactionReceiver1.java。分别如下所示：
 
-```
 TransactionSender1.java
+
+```
+
 
 package net.anumbrella.rabbitmq.sender;
 
@@ -94,19 +96,91 @@ public class TransactionSender1 {
 
 ```
 try {
-      // 开启事务
-    channel.txSelect();
-    // 往队列中发出一条消息，使用rabbitmq默认交换机
-    channel.basicPublish("", QUEUE_NAME, null, message.getBytes());
-    // 提交事务
-    channel.txCommit();
+      // 开启事务
+    channel.txSelect();
+    // 往队列中发出一条消息，使用rabbitmq默认交换机
+    channel.basicPublish("", QUEUE_NAME, null, message.getBytes());
+    // 提交事务
+    channel.txCommit();
 } catch (Exception e) {
-     e.printStackTrace();
-     // 事务回滚
-     channel.txRollback();
+     e.printStackTrace();
+     // 事务回滚
+     channel.txRollback();
+}
+```
+
+TransactionReceiver1.java
+
+```
+ 
+
+ 
+package net.anumbrella.rabbitmq.receiver;
+ 
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.concurrent.TimeoutException;
+ 
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.Consumer;
+import com.rabbitmq.client.DefaultConsumer;
+import com.rabbitmq.client.Envelope;
+ 
+public class TransactionReceiver1 {
+    
+    private final static String QUEUE_NAME = "transition";
+ 
+    public static void main(String[] argv) throws IOException, InterruptedException, TimeoutException {
+ 
+        ConnectionFactory factory = new ConnectionFactory();
+ 
+        factory.setUsername("guest");
+        factory.setPassword("guest");
+        factory.setHost("127.0.0.1");
+        factory.setVirtualHost("/");
+        factory.setPort(5672);
+        // 打开连接和创建频道，与发送端一样
+ 
+        Connection connection = factory.newConnection();
+        Channel channel = connection.createChannel();
+ 
+        // 声明队列，主要为了防止消息接收者先运行此程序，队列还不存在时创建队列。
+        channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+        System.out.println("Receiver1 waiting for messages. To exit press CTRL+C");
+ 
+        // 创建队列消费者
+        final Consumer consumer = new DefaultConsumer(channel) {
+            @Override
+            public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties,
+                    byte[] body) throws IOException {
+                SimpleDateFormat time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSSS");
+ 
+                String message = new String(body, "UTF-8");
+ 
+                System.out.println(" TransactionReceiver1  : " + message);
+                System.out.println(" TransactionReceiver1 Done! at " + time.format(new Date()));
+            }
+        };
+        channel.basicConsume(QUEUE_NAME, true, consumer);
+    }
+ 
 }
 
 ```
+
+消息的接收者跟原来是一样的，因为事务主要是保证消息要发送到Broker当中。  
+接着我们使用wireshark来监听网络，这里也可以使用Fiddler。由于笔者使用的是MAC系统，没有Fiddler版本。如果读者要使用Fiddler，同时使用windows可以看看这篇文章，后面有对Fiddler的介绍，JMeter搭配Fiddler的简单使用（一）。
+
+启动wireshark，选择好网络，输入amqp过滤我们需要的信息。  
+然后我们分别启动TransactionReceiver1.java 和 TransactionSender1.java。
+
+![](/assets/20181227173020657.png)
+
+
 
 
 
