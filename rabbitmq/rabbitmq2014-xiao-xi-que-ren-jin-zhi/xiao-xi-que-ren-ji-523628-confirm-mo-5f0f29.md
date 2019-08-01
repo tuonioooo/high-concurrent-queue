@@ -6,7 +6,9 @@
 
 这里的Confirm模式可以分为两个方面来讲解，一是消息的生产者\(Producer\)的Confirm模式，另一个是消息的消费者\(Consumer\)的Confirm模式。
 
-**一.生产者\(Producer\)的Confirm模式**  
+### **一.生产者\(Producer\)的Confirm模式**
+
+  
 通过生产者的确认模式我们是要保证消息准确达到Broker端，而与AMQP事务不同的是Confirm是针对一条消息的，而事务是可以针对多条消息的。
 
 发送原理图大致如下：
