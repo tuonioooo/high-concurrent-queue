@@ -323,7 +323,83 @@ TransactionReceiver2  : Transition:  2018-06-18 23:00:16 This is a transaction m
 
 刚才我们讲解的是同步的情况，现在我们讲解一下异步的形式。在异步当中，主要使用MessageListener 接口，它是 Spring AMQP 异步消息投递的监听器接口。而MessageListener的实现类SimpleMessageListenerContainer则是作为了整个异步消息投递的核心类存在。
 
+接下来我们开始介绍使用异步的方法，同样表示需要的外部事务，用户需要在容器配置的时候指定PlatformTransactionManager的实现。代码如下：
 
+```
+    @Bean
+    public SimpleMessageListenerContainer messageListenerContainer() {
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory());
+        container.setTransactionManager(rabbitTransactionManager());
+        container.setChannelTransacted(true);
+        // 开启手动确认
+        container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+        container.setQueues(transitionQueue());
+        container.setMessageListener(new TransitionConsumer());
+        return container;
+    }
+
+```
+
+这段代码我们是添加在config下的RabbitConfig.java下，通过配置事务管理器，将channelTransacted属性被设置为true。
+
+在容器中配置事务时，如果提供了transactionManager，channelTransaction必须为true，使得如果监听器处理失败，并且抛出异常，那么事务将进行回滚，那么消息将返回给消息代理；如果为false，外部的事务仍然可以提供给监听容器，造成的影响是在回滚的业务操作中也会提交消息传输的操作。
+
+通过使用RabbitTransactionManager，这个事务管理器是PlatformTransactionManager接口的实现，它只能在一个Rabbit ConnectionFactory中使用。
+
+注意：这种策略不能够提供XA事务，例如在消息和数据库之间共享事务。
+
+除了上面的代码外，还有RabbitTransactionManager和TransitionConsumer需要添加，代码如下：  
+
+```
+ /**
+     * 声明transition2队列
+     * 
+     * @return
+     */
+    @Bean
+    public Queue transitionQueue() {
+        return new Queue("transition2");
+    }
+    
+    /**
+     * 事务管理
+     * 
+     * @return
+     */
+    @Bean
+    public RabbitTransactionManager rabbitTransactionManager() {
+        return new RabbitTransactionManager(connectionFactory());
+    }
+ 
+    /**
+     * 自定义消费者
+     */
+    public class TransitionConsumer implements ChannelAwareMessageListener {
+ 
+        @Override
+        public void onMessage(Message message, Channel channel) throws Exception {
+            byte[] body = message.getBody();
+            System.out.println("TransitionConsumer: " + new String(body));
+            // 确认消息成功消费
+            channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+            // 除以0，模拟异常，进行事务回滚
+            // int t = 1 / 0;
+        }
+    }
+
+```
+
+因为我们在container中设置队列为“transition2”，所以我们在TransactionSender2中更改发送的队列为“transition2”，如下：
+
+this.rabbitTemplate.convertAndSend\("transition2", sendMsg\);  
+1  
+接着我们启动wireshark，选择好网络，输入amqp过滤我们需要的信息。  
+然后启动Spring Boot项目，访问接口http://localhost:8080/rabbit/transition。
+
+我们可以在wireshark中看到有事务的提交，如下：
+
+![](/assets/20181227173140307.png)
 
 
 
