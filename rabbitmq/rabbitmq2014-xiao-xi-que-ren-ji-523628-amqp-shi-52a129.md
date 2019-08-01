@@ -400,5 +400,15 @@ this.rabbitTemplate.convertAndSend\("transition2", sendMsg\);
 
 然后我们在TransitionConsumer中把除以0的模拟异常情况打开，然后再执行上面的操作，可得：
 
-![](/assets/20181227173203538.png)可以看到先进行了事务提交，后面事务又回滚了。意味着消息没有接收成功，我们在RabbitMQ管理界面也可以查看到消息，如果将consumer关掉，则unacked的msg则会又回到了ready状态。（注意：这里我们模拟的是消费者接收事务，前面是消息生成者发送到Broker的事务）
+![](/assets/20181227173203538.png)可以看到先进行了事务提交，后面事务又回滚了。
+
+
+
+
+
+
+
+
+
+
 
