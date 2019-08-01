@@ -14,7 +14,7 @@ txRollback()
 
 txSelect主要用于将当前channel设置成transaction模式，txCommit用于提交事务，txRollback用于回滚事务。
 
-当我们使用txSelect提交开始事务之后，我们就可以发布消息给Broke代理服务器，如果txCommit提交成功了，则消息一定到达了Broke了，如果在txCommit执行之前Broker出现异常崩溃或者由于其他原因抛出异常，这个时候我们便可以捕获异常通过txRollback方法进行回滚事务了。
+当我们使用txSelect提交开始事务之后，我们就可以发布消息给Broke代理服务器，如果txCommit提交成功了，则消息一定到达了Broker了，如果在txCommit执行之前Broker出现异常崩溃或者由于其他原因抛出异常，这个时候我们便可以捕获异常通过txRollback方法进行回滚事务了。
 
 所以RabbitMQ事务中的主要代码为：
 
@@ -24,5 +24,7 @@ channel.basicPublish(exchange, routingKey, MessageProperties.PERSISTENT_TEXT_PLA
 channel.txCommit();
 ```
 
+先进行事务提交，然后开始发送消息，最后提交事务。
 
+还是在原来的demo代码基础下，在sender和receiver包下分别新建TransactionSender1.java和TransactionReceiver1.java。分别如下所示：
 
