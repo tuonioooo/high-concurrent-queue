@@ -213,6 +213,8 @@ Broker发送Tx.Commit-Ok
 **注意：发布确认和事务。\(两者不可同时使用\)在channel为事务时，不可引入确认模式；同样channel为确认模式下，不可使用事务。  
 所以在使用事务时，在application.properties中，需要将确认模式更改为false。spring.rabbitmq.publisher-confirms=false**
 
+* ### **同步**
+
 通过设置RabbitTemplate的channelTransacted为true，来设置事务环境，使得可以使用RabbitMQ事务。如下：
 
 template.setChannelTransacted\(true\);
@@ -315,11 +317,11 @@ TransactionReceiver2  : Transition:  2018-06-18 23:00:16 This is a transaction m
 
 查看wireshark如下：
 
-![](/assets/20181227173121879.png)
+![](/assets/20181227173121879.png)可以看到这里与前面我们讲解的原生事务是一致的，而当发送消息出现异常时，就会响应执行事务回滚。
 
+* ### **异步**
 
-
-
+刚才我们讲解的是同步的情况，现在我们讲解一下异步的形式。在异步当中，主要使用MessageListener 接口，它是 Spring AMQP 异步消息投递的监听器接口。而MessageListener的实现类SimpleMessageListenerContainer则是作为了整个异步消息投递的核心类存在。
 
 
 
