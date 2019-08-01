@@ -19,3 +19,5 @@
 
 在 RabbitMQ 3.6.x 开始，RabbitMQ 官方提供了延迟队列的插件，可以下载放置到 RabbitMQ 根目录下的 plugins 下。[延迟队列插件下载](https://www.rabbitmq.com/community-plugins.htm)
 
+![](/assets/1543774-20190603131744576-736613516.png)
+
