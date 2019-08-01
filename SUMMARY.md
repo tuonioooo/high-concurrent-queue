@@ -20,7 +20,8 @@
     * [消息确认机制\(AMQP事务\)](rabbitmq/rabbitmq2014-xiao-xi-que-ren-ji-523628-amqp-shi-52a129.md)
     * [消息确认机制\(Confirm模式\)](rabbitmq/rabbitmq2014-xiao-xi-que-ren-jin-zhi/xiao-xi-que-ren-ji-523628-confirm-mo-5f0f29.md)
   * [延迟队列](rabbitmq/yan-chi-dui-lie.md)
-    * [消费端限流、TTL、死信队列](rabbitmq/yan-chi-dui-lie/xiao-fei-duan-xian-liu-3001-ttl-3001-si-xin-dui-lie.md)
+    * [消费端限流](rabbitmq/yan-chi-dui-lie/xiao-fei-duan-xian-liu-3001-ttl-3001-si-xin-dui-lie.md)
+    * [TTL](rabbitmq/yan-chi-dui-lie/ttl.md)
     * [延迟队列——消息延迟推送](rabbitmq/yan-chi-dui-lie-2014-2014-xiao-xi-yan-chi-tui-song.md)
 * [实战场景](shi-zhan-chang-jing.md)
   * 系统解耦
