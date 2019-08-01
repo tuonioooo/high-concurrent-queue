@@ -16,6 +16,7 @@
   * [与Spring集成](rabbitmq/yu-spring-ji-cheng.md)
   * [ack机制](rabbitmq/ackji-zhi.md)
   * [持久化机制](rabbitmq/chi-jiu-hua-ji-zhi.md)
+  * [RabbitMQ—消息确认机制\(AMQP事务\)](rabbitmq/rabbitmq2014-xiao-xi-que-ren-ji-523628-amqp-shi-52a129.md)
 * [实战场景](shi-zhan-chang-jing.md)
   * 系统解耦
   * 定时消息
