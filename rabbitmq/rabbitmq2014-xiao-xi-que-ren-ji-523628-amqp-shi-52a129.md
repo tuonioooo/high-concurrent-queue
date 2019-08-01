@@ -31,8 +31,6 @@ channel.txCommit();
 TransactionSender1.java
 
 ```
-
-
 package net.anumbrella.rabbitmq.sender;
 
 import java.io.IOException;
@@ -112,16 +110,13 @@ try {
 TransactionReceiver1.java
 
 ```
- 
-
- 
 package net.anumbrella.rabbitmq.receiver;
- 
+
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeoutException;
- 
+
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -129,47 +124,46 @@ import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
- 
-public class TransactionReceiver1 {
-    
-    private final static String QUEUE_NAME = "transition";
- 
-    public static void main(String[] argv) throws IOException, InterruptedException, TimeoutException {
- 
-        ConnectionFactory factory = new ConnectionFactory();
- 
-        factory.setUsername("guest");
-        factory.setPassword("guest");
-        factory.setHost("127.0.0.1");
-        factory.setVirtualHost("/");
-        factory.setPort(5672);
-        // 打开连接和创建频道，与发送端一样
- 
-        Connection connection = factory.newConnection();
-        Channel channel = connection.createChannel();
- 
-        // 声明队列，主要为了防止消息接收者先运行此程序，队列还不存在时创建队列。
-        channel.queueDeclare(QUEUE_NAME, false, false, false, null);
-        System.out.println("Receiver1 waiting for messages. To exit press CTRL+C");
- 
-        // 创建队列消费者
-        final Consumer consumer = new DefaultConsumer(channel) {
-            @Override
-            public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties,
-                    byte[] body) throws IOException {
-                SimpleDateFormat time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSSS");
- 
-                String message = new String(body, "UTF-8");
- 
-                System.out.println(" TransactionReceiver1  : " + message);
-                System.out.println(" TransactionReceiver1 Done! at " + time.format(new Date()));
-            }
-        };
-        channel.basicConsume(QUEUE_NAME, true, consumer);
-    }
- 
-}
 
+public class TransactionReceiver1 {
+
+    private final static String QUEUE_NAME = "transition";
+
+    public static void main(String[] argv) throws IOException, InterruptedException, TimeoutException {
+
+        ConnectionFactory factory = new ConnectionFactory();
+
+        factory.setUsername("guest");
+        factory.setPassword("guest");
+        factory.setHost("127.0.0.1");
+        factory.setVirtualHost("/");
+        factory.setPort(5672);
+        // 打开连接和创建频道，与发送端一样
+
+        Connection connection = factory.newConnection();
+        Channel channel = connection.createChannel();
+
+        // 声明队列，主要为了防止消息接收者先运行此程序，队列还不存在时创建队列。
+        channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+        System.out.println("Receiver1 waiting for messages. To exit press CTRL+C");
+
+        // 创建队列消费者
+        final Consumer consumer = new DefaultConsumer(channel) {
+            @Override
+            public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties,
+                    byte[] body) throws IOException {
+                SimpleDateFormat time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSSS");
+
+                String message = new String(body, "UTF-8");
+
+                System.out.println(" TransactionReceiver1  : " + message);
+                System.out.println(" TransactionReceiver1 Done! at " + time.format(new Date()));
+            }
+        };
+        channel.basicConsume(QUEUE_NAME, true, consumer);
+    }
+
+}
 ```
 
 消息的接收者跟原来是一样的，因为事务主要是保证消息要发送到Broker当中。  
@@ -178,7 +172,13 @@ public class TransactionReceiver1 {
 启动wireshark，选择好网络，输入amqp过滤我们需要的信息。  
 然后我们分别启动TransactionReceiver1.java 和 TransactionSender1.java。
 
-![](/assets/20181227173020657.png)
+![](/assets/20181227173020657.png)从上面我们可以清晰的看见消息的分发过程，与我们前面分析的一致。主要执行了四个步骤：
+
+Client发送Tx.Select  
+Broker发送Tx.Select-Ok\(在它之后，发送消息\)  
+Client发送Tx.Commit  
+Broker发送Tx.Commit-Ok  
+接下来我们通过抛出异常来模拟发送消息错误，进行事务回滚。更改发送信息代码为：
 
 
 
