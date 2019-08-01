@@ -252,7 +252,72 @@ ack: deliveryTag = 5 multiple: false
 
 我们要实现自己异步调用，主要就是为了维护delivery-tag，主要实现代码如下：
 
+```
+// 创建连接
+ConnectionFactory factory = new ConnectionFactory();
+factory.setUsername(config.UserName);
+factory.setPassword(config.Password);
+factory.setVirtualHost(config.VHost);
+factory.setHost(config.Host);
+factory.setPort(config.Port);
+Connection conn = factory.newConnection();
+// 创建信道
+Channel channel = conn.createChannel();
+// 声明队列
+channel.queueDeclare(config.QueueName, false, false, false, null);
+// 开启发送方确认模式
+channel.confirmSelect();
+for (int i = 0; i < 10; i++) {
+    String message = String.format("时间 => %s", new Date().getTime());
+    channel.basicPublish("", config.QueueName, null, message.getBytes("UTF-8"));
+}
+//异步监听确认和未确认的消息
+channel.addConfirmListener(new ConfirmListener() {
+    @Override
+    public void handleNack(long deliveryTag, boolean multiple) throws IOException {
+        System.out.println("未确认消息，标识：" + deliveryTag);
+    }
+    @Override
+    public void handleAck(long deliveryTag, boolean multiple) throws IOException {
+        System.out.println(String.format("已确认消息，标识：%d，多个消息：%b", deliveryTag, multiple));
+    }
+});
+```
 
+二、消费者\(Consumer\)的Confirm模式  
+1、手动确认和自动确认  
+为了保证消息从队列可靠地到达消费者，RabbitMQ提供消息确认机制\(message acknowledgment\)。消费者在声明队列时，可以指定noAck参数，当noAck=false时，RabbitMQ会等待消费者显式发回ack信号后才从内存\(和磁盘，如果是持久化消息的话\)中移去消息。否则，RabbitMQ会在队列中消息被消费后立即删除它。
 
+采用消息确认机制后，只要令noAck=false，消费者就有足够的时间处理消息\(任务\)，不用担心处理消息过程中消费者进程挂掉后消息丢失的问题，因为RabbitMQ会一直持有消息直到消费者显式调用basicAck为止。
 
+在Consumer中Confirm模式中分为手动确认和自动确认。
+
+手动确认主要并使用以下方法：
+
+basic.ack: 用于肯定确认，multiple参数用于多个消息确认。   
+basic.recover：是路由不成功的消息可以使用recovery重新发送到队列中。   
+basic.reject：是接收端告诉服务器这个消息我拒绝接收,不处理,可以设置是否放回到队列中还是丢掉，而且只能一次拒绝一个消息,官网中有明确说明不能批量拒绝消息，为解决批量拒绝消息才有了basicNack。   
+basic.nack：可以一次拒绝N条消息，客户端可以设置basicNack方法的multiple参数为true，服务器会拒绝指定了delivery\_tag的所有未确认的消息\(tag是一个64位的long值，最大值是9223372036854775807\)。
+
+肯定的确认只是指导RabbitMQ将一个消息记录为已投递。basic.reject的否定确认具有相同的效果。 两者的差别在于：肯定的确认假设一个消息已经成功处理，而对立面则表示投递没有被处理，但仍然应该被删除。
+
+同样的Consumer中的Confirm模式也具有同时确认多个投递，通过将确认方法的 multiple “字段设置为true完成的，实现的意义与Producer的一致。
+
+在自动确认模式下，消息在发送后立即被认为是发送成功。 这种模式可以提高吞吐量（只要消费者能够跟上），不过会降低投递和消费者处理的安全性。 这种模式通常被称为“发后即忘”。 与手动确认模式不同，如果消费者的TCP连接或信道在成功投递之前关闭，该消息则会丢失。
+
+使用自动确认模式时需要考虑的另一件事是消费者过载。 手动确认模式通常与有限的信道预取一起使用，限制信道上未完成（“进行中”）传送的数量。 然而，对于自动确认，根据定义没有这样的限制。 因此，消费者可能会被交付速度所压倒，可能积压在内存中，堆积如山，或者被操作系统终止。 某些客户端库将应用TCP反压（直到未处理的交付积压下降超过一定的限制时才停止从套接字读取）。 因此，只建议当消费者可以有效且稳定地处理投递时才使用自动投递方式。
+
+主要实现代码：
+
+// 手动确认消息  
+channel.basicAck\(envelope.getDeliveryTag\(\), false\);
+
+// 关闭自动确认  
+boolean autoAck = false;  
+channel.basicConsume\(QUEUE\_NAME, autoAck, consumer\);  
+  
+2、关于Spring Boot使用Consumer的Confirm模式  
+请参考rabbitmq-demo中的CallBackSender.java和CheckReceiver.java的实现。
+
+最后上面演示的demo，还是放在github，rabbitmq-demo。
 
