@@ -180,6 +180,38 @@ Client发送Tx.Commit
 Broker发送Tx.Commit-Ok  
 接下来我们通过抛出异常来模拟发送消息错误，进行事务回滚。更改发送信息代码为：
 
+```
+ try {
+            // 开启事务
+            channel.txSelect();
+            // 往队列中发出一条消息，使用rabbitmq默认交换机
+            channel.basicPublish("", QUEUE_NAME, null, message.getBytes());
+            // 除以0，模拟异常，使用rabbitmq默认交换机
+            int t = 1/0;
+            // 提交事务
+            channel.txCommit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            // 事务回滚
+            channel.txRollback();
+        }
+
+```
+
+这里我们通过除以0来模拟抛出异常，接着按同样的顺序运行代码。
+
+![](/assets/20181227173033348.png)
+
+
+
+
+
+
+
+
+
+
+
 
 
 
