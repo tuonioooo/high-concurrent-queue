@@ -1,6 +1,4 @@
-# 消费端限流、TTL、死信队列
-
-## 消费端限流 {#消费端限流}
+# 消费端限流
 
 ### 1. 为什么要对消费端限流 {#为什么要对消费端限流}
 
@@ -103,25 +101,25 @@ public class QosConsumer {
         factory.setPassword("guest");
         factory.setAutomaticRecoveryEnabled(true);
         factory.setNetworkRecoveryInterval(3000);
- 
+
         //2. 通过连接工厂来创建连接
         Connection connection = factory.newConnection();
- 
+
         //3. 通过 Connection 来创建 Channel
         final Channel channel = connection.createChannel();
- 
+
         //4. 声明
         String exchangeName = "test_qos_exchange";
         String queueName = "test_qos_queue";
         String routingKey = "item.#";
         channel.exchangeDeclare(exchangeName, "topic", true, false, null);
         channel.queueDeclare(queueName, true, false, false, null);
- 
+
         channel.basicQos(0, 3, false);
- 
+
         //一般不用代码绑定，在管理界面手动绑定
         channel.queueBind(queueName, exchangeName, routingKey);
- 
+
         //5. 创建消费者并接收消息
         Consumer consumer = new DefaultConsumer(channel) {
             @Override
@@ -135,7 +133,7 @@ public class QosConsumer {
                 }
                 String message = new String(body, "UTF-8");
                 System.out.println("[x] Received '" + message + "'");
- 
+
                 channel.basicAck(envelope.getDeliveryTag(), true);
             }
         };
@@ -144,16 +142,13 @@ public class QosConsumer {
         channel.basicConsume(queueName, false, consumer1);
     }
 }
-
 ```
 
-我们从下图中发现 `Unacked`值一直都是 3 ，每过 5 秒 消费一条消息即 Ready 和 Total 都减少 3，而 `Unacked`
+我们从下图中发现 `Unacked`值一直都是 3 ，每过 5 秒 消费一条消息即 Ready 和 Total 都减少 3，而 `Unacked`
 
 的值在这里代表消费者正在处理的消息，通过我们的实验发现了消费者一次性最多处理 3 条消息，达到了消费者限流的预期功能。
 
 ![](/assets/1543774-20190601135236406-1764031047.png)
 
-当我们将`void basicQos(int prefetchSize, int prefetchCount, boolean global)`中的 global 设置为 `true`的时候我们发现并没有了限流的作用。
-
-
+当我们将`void basicQos(int prefetchSize, int prefetchCount, boolean global)`中的 global 设置为 `true`的时候我们发现并没有了限流的作用。
 
