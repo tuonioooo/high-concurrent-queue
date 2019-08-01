@@ -30,33 +30,172 @@ Confirm模式最大的好处在于它是异步的，一旦发布一条消息，�
 
 消息持久化的优化没有太好方法，用更好的物理存储（SAS, SSD, RAID卡）总会带来改善。生产者confirm这一环节的优化则主要在于客户端程序的优化之上。归纳起来，客户端实现生产者confirm有三种编程方式：
 
-* 普通Confirm模式：每发送一条消息后，调用waitForConfirms\(\)方法，等待服务器端Confirm。实际上是一种串行Confirm了，每publish一条消息之后就等待服务端Confirm，如果服务端返回false或者超时时间内未返回，客户端进行消息重传； 批量Confirm模式：
-* 批量Confirm模式：每发送一批消息之后，调用waitForConfirms\(\)方法，等待服务端Confirm，这种批量确认的模式极大的提高了Confirm效率，但是如果一旦出现Confirm返回false或者超时的情况，客户端需要将这一批次的消息全部重发，这会带来明显的重复消息，如果这种情况频繁发生的话，效率也会不升反降；
-* 异步Confirm模式：提供一个回调方法，服务端Confirm了一条或者多条消息后Client端会回调这个方法。 **1、普通Confirm模式**
+* **普通Confirm模式**：每发送一条消息后，调用waitForConfirms\(\)方法，等待服务器端Confirm。实际上是一种串行Confirm了，每publish一条消息之后就等待服务端Confirm，如果服务端返回false或者超时时间内未返回，客户端进行消息重传； 
+* **批量Confirm模式**：每发送一批消息之后，调用waitForConfirms\(\)方法，等待服务端Confirm，这种批量确认的模式极大的提高了Confirm效率，但是如果一旦出现Confirm返回false或者超时的情况，客户端需要将这一批次的消息全部重发，这会带来明显的重复消息，如果这种情况频繁发生的话，效率也会不升反降；
+* **异步Confirm模式**：提供一个回调方法，服务端Confirm了一条或者多条消息后Client端会回调这个方法。 
+
+
+
+**1、普通Confirm模式**
+
+ConfirmSender1.java：
 
 ```
-// 创建连接
-ConnectionFactory factory = new ConnectionFactory();
-factory.setUsername(config.UserName);
-factory.setPassword(config.Password);
-factory.setVirtualHost(config.VHost);
-factory.setHost(config.Host);
-factory.setPort(config.Port);
-Connection conn = factory.newConnection();
-// 创建信道
-Channel channel = conn.createChannel();
-// 声明队列
-channel.queueDeclare(config.QueueName, false, false, false, null);
-// 开启发送方确认模式
-channel.confirmSelect();
-String message = String.format("时间 => %s", new Date().getTime());
-channel.basicPublish("", config.QueueName, null, message.getBytes("UTF-8"));
-if (channel.waitForConfirms()) {
-    System.out.println("消息发送成功" );
+package net.anumbrella.rabbitmq.sender;
+
+
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.MessageProperties;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+
+/**
+ * 这是java原生类支持RabbitMQ，直接运行该类
+ */
+public class ConfirmSender1 {
+
+    private final static String QUEUE_NAME = "confirm";
+
+    public static void main(String[] args) throws IOException, TimeoutException, InterruptedException {
+        /**
+         * 创建连接连接到RabbitMQ
+         */
+        ConnectionFactory factory = new ConnectionFactory();
+
+        // 设置RabbitMQ所在主机ip或者主机名
+        factory.setUsername("guest");
+        factory.setPassword("guest");
+        factory.setHost("127.0.0.1");
+        factory.setVirtualHost("/");
+        factory.setPort(5672);
+
+        // 创建一个连接
+        Connection connection = factory.newConnection();
+
+        // 创建一个频道
+        Channel channel = connection.createChannel();
+
+        // 指定一个队列
+        channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+        // 发送的消息
+        String message = "This is a confirm message！";
+
+        channel.confirmSelect();
+        final long start = System.currentTimeMillis();
+        //发送持久化消息
+        for (int i = 0; i < 5; i++) {
+            //第一个参数是exchangeName(默认情况下代理服务器端是存在一个""名字的exchange的,
+            //因此如果不创建exchange的话我们可以直接将该参数设置成"",如果创建了exchange的话
+            //我们需要将该参数设置成创建的exchange的名字),第二个参数是路由键
+            channel.basicPublish("", QUEUE_NAME, MessageProperties.PERSISTENT_BASIC, (" Confirm模式， 第" + (i + 1) + "条消息").getBytes());
+            if (channel.waitForConfirms()) {
+                System.out.println("发送成功");
+            }else{
+                // 进行消息重发
+            }
+        }
+        System.out.println("执行waitForConfirms耗费时间: " + (System.currentTimeMillis() - start) + "ms");
+        // 关闭频道和连接
+        channel.close();
+        connection.close();
+    }
+}
+
+```
+
+我们在代码中发送了5条消息到Broker端，每条消息发送后都会等待确认。
+
+ConfirmReceiver1.java：
+
+```
+package net.anumbrella.rabbitmq.receiver;
+
+
+import com.rabbitmq.client.*;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.concurrent.TimeoutException;
+
+/**
+ * 这是java原生类支持RabbitMQ，直接运行该类
+ */
+public class ConfirmReceiver1 {
+
+    private final static String QUEUE_NAME = "confirm";
+
+    public static void main(String[] argv) throws IOException, InterruptedException, TimeoutException {
+
+        ConnectionFactory factory = new ConnectionFactory();
+
+        factory.setUsername("guest");
+        factory.setPassword("guest");
+        factory.setHost("127.0.0.1");
+        factory.setVirtualHost("/");
+        factory.setPort(5672);
+        // 打开连接和创建频道，与发送端一样
+
+        Connection connection = factory.newConnection();
+        Channel channel = connection.createChannel();
+
+        // 声明队列，主要为了防止消息接收者先运行此程序，队列还不存在时创建队列。
+        channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+        System.out.println("ConfirmReceiver1 waiting for messages. To exit press CTRL+C");
+
+        // 创建队列消费者
+        final Consumer consumer = new DefaultConsumer(channel) {
+            @Override
+            public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties,
+                                       byte[] body) throws IOException {
+                SimpleDateFormat time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSSS");
+
+                String message = new String(body, "UTF-8");
+
+                System.out.println(" ConfirmReceiver1  : " + message);
+                System.out.println(" ConfirmReceiver1 Done! at " + time.format(new Date()));
+            }
+        };
+        channel.basicConsume(QUEUE_NAME, true, consumer);
+    }
 }
 ```
 
-普通Confirm模式最简单，publish一条消息后，等待服务器端Confirm，如果服务端返回false或者超时时间内未返回，客户端就进行消息重传。
+我们开启WireShak，监听RabbitMQ消息的发送。然后我们直接运行ConfirmSender1.java类，可以不用运行ConfirmReceiver.java，因为我们主要是测试消息到达Broker端，这主要是涉及到Producer和RabbitMQ的服务端。
+
+在控制台打印出了信息：
+
+发送成功  
+发送成功  
+发送成功  
+发送成功  
+发送成功  
+执行waitForConfirms耗费时间: 181ms  
+  
+在RabbitMQ管理界面confirm队列里，我们可以查看到我们发送的5条消息数据。 
+
+  
+在WireShark中也可以发现开启了Confirm模式，以及我们发送的5条消息。 
+
+接着我们启动ConfirmReceiver.java，可以收到我们发送的具体消息：
+
+ ConfirmReceiver1 waiting for messages. To exit press CTRL+C  
+ ConfirmReceiver1  :  Confirm模式， 第1条消息  
+ ConfirmReceiver1 Done! at 2018-08-04 14:58:27:0014  
+ ConfirmReceiver1  :  Confirm模式， 第2条消息  
+ ConfirmReceiver1 Done! at 2018-08-04 14:58:27:0016  
+ ConfirmReceiver1  :  Confirm模式， 第3条消息  
+ ConfirmReceiver1 Done! at 2018-08-04 14:58:27:0016  
+ ConfirmReceiver1  :  Confirm模式， 第4条消息  
+ ConfirmReceiver1 Done! at 2018-08-04 14:58:27:0017  
+ ConfirmReceiver1  :  Confirm模式， 第5条消息  
+ ConfirmReceiver1 Done! at 2018-08-04 14:58:27:0017
 
 
 
