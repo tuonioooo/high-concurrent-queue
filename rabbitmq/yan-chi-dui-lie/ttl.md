@@ -13,7 +13,7 @@ RabbitMQ支持队列的过期时间，从消息入队列开始计算，只要超
 
 ### 1.消息的 TTL {#消息的-ttl}
 
-我们在生产端发送消息的时候可以在 properties 中指定 `expiration`属性来对消息过期时间进行设置，单位为毫秒\(ms\)。
+我们在生产端发送消息的时候可以在 properties 中指定 `expiration`属性来对消息过期时间进行设置，单位为毫秒\(ms\)。
 
 ```
      /**
@@ -25,7 +25,7 @@ RabbitMQ支持队列的过期时间，从消息入队列开始计算，只要超
         Map<String, Object> headers = new HashMap<String, Object>();
         headers.put("myhead1", "111");
         headers.put("myhead2", "222");
- 
+
         AMQP.BasicProperties properties = new AMQP.BasicProperties().builder()
                 .deliveryMode(2)
                 .contentEncoding("UTF-8")
@@ -34,7 +34,6 @@ RabbitMQ支持队列的过期时间，从消息入队列开始计算，只要超
                 .build();
         String msg = "test message";
         channel.basicPublish("", queueName, properties, msg.getBytes());
-
 ```
 
 我们也可以后台管理页面中进入 Exchange 发送消息指定`expiration`
@@ -46,6 +45,12 @@ RabbitMQ支持队列的过期时间，从消息入队列开始计算，只要超
 我们也可以在后台管理界面中新增一个 queue，创建时可以设置 ttl，对于队列中超过该时间的消息将会被移除。
 
 ![](/assets/1543774-20190522121311523-815458531.png)
+
+
+
+
+
+
 
 
 
