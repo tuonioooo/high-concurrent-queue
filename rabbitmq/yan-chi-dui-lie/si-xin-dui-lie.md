@@ -10,7 +10,16 @@
 
 * **达到最大队列长度**
 
+### 实现死信队列步骤 {#实现死信队列步骤}
 
+首先需要设置死信队列的 exchange 和 queue，然后进行绑定:
 
+```
+Exchange: dlx.exchange
+Queue: dlx.queue
+RoutingKey: # 代表接收所有路由 key
 
+```
+
+然后我们进行正常声明交换机、队列、绑定，只不过我们需要在普通队列加上一个参数即可: arguments.put\("x-dead-letter-exchange",' dlx.exchange' \)
 
