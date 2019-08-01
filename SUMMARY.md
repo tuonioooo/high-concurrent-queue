@@ -22,6 +22,7 @@
   * [延迟队列](rabbitmq/yan-chi-dui-lie.md)
     * [消费端限流](rabbitmq/yan-chi-dui-lie/xiao-fei-duan-xian-liu-3001-ttl-3001-si-xin-dui-lie.md)
     * [TTL](rabbitmq/yan-chi-dui-lie/ttl.md)
+    * [死信队列](rabbitmq/yan-chi-dui-lie/si-xin-dui-lie.md)
     * [延迟队列——消息延迟推送](rabbitmq/yan-chi-dui-lie-2014-2014-xiao-xi-yan-chi-tui-song.md)
 * [实战场景](shi-zhan-chang-jing.md)
   * 系统解耦
