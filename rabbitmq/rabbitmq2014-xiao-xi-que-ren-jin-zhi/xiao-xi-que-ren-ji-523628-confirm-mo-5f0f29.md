@@ -207,9 +207,42 @@ if(channel.waitForConfirms()){
 }
 ```
 
+这里主要更改代码为发送批量消息后再进行等待服务器确认，还可以调用channel.waitForConfirmsOrDie\(\)方法，该方法会等到最后一条消息得到确认或者得到nack才会结束，也就是说在waitForConfirmsOrDie处会造成当前程序的阻塞。更改代码为批量Confirm模式，运行我们查看控制台：
 
+发送成功  
+执行waitForConfirms耗费时间: 59ms  
+  
+在WireShark查看信息如下： 
 
+  
+可以发现这里处理的就是在批量发送信息完毕后，再进行ACK确认。同时我们发现这里只有三个Basic.Ack，这是因为Broker对信息进行了批量处理。
 
+我们可以发现multiple的值为true，这与前面我们讲解的一致，true确认所有将比第一个参数指定的 delivery-tag 小的消息都得到确认。
 
+我们也可以发现执行时间比第一种模式缩短了很多，效率极大提高了。
+
+如果我们要对每条消息进行监听处理，可以通过在channel中添加监听器来实现，
+
+channel.addConfirmListener\(new ConfirmListener\(\) {
+
+            @Override  
+            public void handleNack\(long deliveryTag, boolean multiple\) throws IOException {  
+                System.out.println\("nack: deliveryTag = " + deliveryTag + " multiple: " + multiple\);  
+            }
+
+            @Override  
+            public void handleAck\(long deliveryTag, boolean multiple\) throws IOException {  
+                System.out.println\("ack: deliveryTag = " + deliveryTag + " multiple: " + multiple\);  
+            }  
+        }\);  
+  
+当收到Broker发送过来的ack消息时就会调用handleAck方法，收到nack时就会调用handleNack方法。
+
+我们可以在控制台看到信息，这次调用了两次Basic.Ack方法。
+
+ack: deliveryTag = 4 multiple: true  
+ack: deliveryTag = 5 multiple: false  
+发送成功  
+执行waitForConfirms耗费时间: 50ms  
 
 
