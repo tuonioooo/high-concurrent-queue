@@ -327,18 +327,17 @@ TransactionReceiver2  : Transition:  2018-06-18 23:00:16 This is a transaction m
 
 ```
     @Bean
-    public SimpleMessageListenerContainer messageListenerContainer() {
-        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
-        container.setConnectionFactory(connectionFactory());
-        container.setTransactionManager(rabbitTransactionManager());
-        container.setChannelTransacted(true);
-        // 开启手动确认
-        container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
-        container.setQueues(transitionQueue());
-        container.setMessageListener(new TransitionConsumer());
-        return container;
-    }
-
+    public SimpleMessageListenerContainer messageListenerContainer() {
+        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory());
+        container.setTransactionManager(rabbitTransactionManager());
+        container.setChannelTransacted(true);
+        // 开启手动确认
+        container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
+        container.setQueues(transitionQueue());
+        container.setMessageListener(new TransitionConsumer());
+        return container;
+    }
 ```
 
 这段代码我们是添加在config下的RabbitConfig.java下，通过配置事务管理器，将channelTransacted属性被设置为true。
@@ -349,57 +348,61 @@ TransactionReceiver2  : Transition:  2018-06-18 23:00:16 This is a transaction m
 
 注意：这种策略不能够提供XA事务，例如在消息和数据库之间共享事务。
 
-除了上面的代码外，还有RabbitTransactionManager和TransitionConsumer需要添加，代码如下：  
+除了上面的代码外，还有RabbitTransactionManager和TransitionConsumer需要添加，代码如下：
 
 ```
- /**
-     * 声明transition2队列
-     * 
-     * @return
-     */
-    @Bean
-    public Queue transitionQueue() {
-        return new Queue("transition2");
-    }
-    
-    /**
-     * 事务管理
-     * 
-     * @return
-     */
-    @Bean
-    public RabbitTransactionManager rabbitTransactionManager() {
-        return new RabbitTransactionManager(connectionFactory());
-    }
- 
-    /**
-     * 自定义消费者
-     */
-    public class TransitionConsumer implements ChannelAwareMessageListener {
- 
-        @Override
-        public void onMessage(Message message, Channel channel) throws Exception {
-            byte[] body = message.getBody();
-            System.out.println("TransitionConsumer: " + new String(body));
-            // 确认消息成功消费
-            channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
-            // 除以0，模拟异常，进行事务回滚
-            // int t = 1 / 0;
-        }
-    }
+ /**
+     * 声明transition2队列
+     * 
+     * @return
+     */
+    @Bean
+    public Queue transitionQueue() {
+        return new Queue("transition2");
+    }
 
+    /**
+     * 事务管理
+     * 
+     * @return
+     */
+    @Bean
+    public RabbitTransactionManager rabbitTransactionManager() {
+        return new RabbitTransactionManager(connectionFactory());
+    }
+
+    /**
+     * 自定义消费者
+     */
+    public class TransitionConsumer implements ChannelAwareMessageListener {
+
+        @Override
+        public void onMessage(Message message, Channel channel) throws Exception {
+            byte[] body = message.getBody();
+            System.out.println("TransitionConsumer: " + new String(body));
+            // 确认消息成功消费
+            channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+            // 除以0，模拟异常，进行事务回滚
+            // int t = 1 / 0;
+        }
+    }
 ```
 
 因为我们在container中设置队列为“transition2”，所以我们在TransactionSender2中更改发送的队列为“transition2”，如下：
 
 this.rabbitTemplate.convertAndSend\("transition2", sendMsg\);  
-1  
 接着我们启动wireshark，选择好网络，输入amqp过滤我们需要的信息。  
-然后启动Spring Boot项目，访问接口http://localhost:8080/rabbit/transition。
+然后启动Spring Boot项目，访问接口[http://localhost:8080/rabbit/transition。](http://localhost:8080/rabbit/transition。)
 
 我们可以在wireshark中看到有事务的提交，如下：
 
 ![](/assets/20181227173140307.png)
+
+然后我们在TransitionConsumer中把除以0的模拟异常情况打开，然后再执行上面的操作，可得：
+
+![](/assets/20181227173203538.png)
+
+
 
 
 
