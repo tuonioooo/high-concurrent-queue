@@ -222,8 +222,6 @@ if(channel.waitForConfirms()){
 
 如果我们要对每条消息进行监听处理，可以通过在channel中添加监听器来实现，
 
-
-
 ```
  channel.addConfirmListener(new ConfirmListener() {
         @Override  
@@ -235,7 +233,7 @@ if(channel.waitForConfirms()){
         public void handleAck(long deliveryTag, boolean multiple\) throws IOException {  
             System.out.println("ack: deliveryTag = " + deliveryTag + " multiple: " + multiple\);  
         }  
-    }\);  
+    }\);
 ```
 
 当收到Broker发送过来的ack消息时就会调用handleAck方法，收到nack时就会调用handleNack方法。
@@ -247,11 +245,12 @@ ack: deliveryTag = 5 multiple: false
 发送成功  
 执行waitForConfirms耗费时间: 50ms
 
+**3、异步Confirm模式**  
+这里使用的异步Confirm模式，也要用到上面提到的监听，但是这里需要我们自己去维护实现一个waitForConfirms\(\)方法或waitForConfirmsOrDie\(\)，而waitForConfirms\(\)是同步的，因此我们需要自己去实现维护delivery-tag。
 
+我们可以在jar中查看到源码，其实waitForConfirmsOrDie\(\)最终调用的也是waitForConfirms\(\)方法，在waitForConfirms\(\)方法内部维护了一个同步块代码，而unconfirmedSet就是存储delivery-tag标识的。
 
-
-
-
+我们要实现自己异步调用，主要就是为了维护delivery-tag，主要实现代码如下：
 
 
 
