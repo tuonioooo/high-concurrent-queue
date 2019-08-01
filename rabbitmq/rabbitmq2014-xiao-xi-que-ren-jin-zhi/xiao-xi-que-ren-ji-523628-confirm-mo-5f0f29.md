@@ -30,10 +30,9 @@ Confirm模式最大的好处在于它是异步的，一旦发布一条消息，�
 
 消息持久化的优化没有太好方法，用更好的物理存储（SAS, SSD, RAID卡）总会带来改善。生产者confirm这一环节的优化则主要在于客户端程序的优化之上。归纳起来，客户端实现生产者confirm有三种编程方式：
 
-普通Confirm模式：每发送一条消息后，调用waitForConfirms\(\)方法，等待服务器端Confirm。实际上是一种串行Confirm了，每publish一条消息之后就等待服务端Confirm，如果服务端返回false或者超时时间内未返回，客户端进行消息重传；  
-批量Confirm模式：批量Confirm模式，每发送一批消息之后，调用waitForConfirms\(\)方法，等待服务端Confirm，这种批量确认的模式极大的提高了Confirm效率，但是如果一旦出现Confirm返回false或者超时的情况，客户端需要将这一批次的消息全部重发，这会带来明显的重复消息，如果这种情况频繁发生的话，效率也会不升反降；  
-异步Confirm模式：提供一个回调方法，服务端Confirm了一条或者多条消息后Client端会回调这个方法。  
-**1、普通Confirm模式**
+* 普通Confirm模式：每发送一条消息后，调用waitForConfirms\(\)方法，等待服务器端Confirm。实际上是一种串行Confirm了，每publish一条消息之后就等待服务端Confirm，如果服务端返回false或者超时时间内未返回，客户端进行消息重传； 批量Confirm模式：
+* 批量Confirm模式：每发送一批消息之后，调用waitForConfirms\(\)方法，等待服务端Confirm，这种批量确认的模式极大的提高了Confirm效率，但是如果一旦出现Confirm返回false或者超时的情况，客户端需要将这一批次的消息全部重发，这会带来明显的重复消息，如果这种情况频繁发生的话，效率也会不升反降；
+* 异步Confirm模式：提供一个回调方法，服务端Confirm了一条或者多条消息后Client端会回调这个方法。 **1、普通Confirm模式**
 
 ```
 // 创建连接
@@ -58,8 +57,6 @@ if (channel.waitForConfirms()) {
 ```
 
 普通Confirm模式最简单，publish一条消息后，等待服务器端Confirm，如果服务端返回false或者超时时间内未返回，客户端就进行消息重传。
-
-
 
 
 
