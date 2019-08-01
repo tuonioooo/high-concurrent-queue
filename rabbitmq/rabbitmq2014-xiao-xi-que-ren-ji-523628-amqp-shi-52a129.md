@@ -223,12 +223,108 @@ template.setChannelTransacted\(true\);
 @Bean
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public RabbitTemplate rabbitTemplateNew() {
-        RabbitTemplate template = new RabbitTemplate(connectionFactory());
-        template.setChannelTransacted(true);
-        return template;
+        RabbitTemplate template = new RabbitTemplate(connectionFactory());
+        template.setChannelTransacted(true);
+        return template;
+}
+```
+
+接着在在sender和receiver包，分别建立TransactionSender2.java和TransactionReceiver2.java。分别如下所示：
+
+TransactionSender2.java
+
+```
+
+ 
+package net.anumbrella.rabbitmq.sender;
+ 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+ 
+import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+ 
+@Component
+public class TransactionSender2 {
+ 
+    @Autowired
+    private AmqpTemplate rabbitTemplate;
+ 
+    @Transactional(rollbackFor = Exception.class)
+    public void send(String msg) {
+        SimpleDateFormat time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String sendMsg = msg + time.format(new Date()) + " This is a transaction message！ ";
+        /**
+         * 这里可以执行数据库操作
+         * 
+         **/
+        System.out.println("TransactionSender2 : " + sendMsg);
+        this.rabbitTemplate.convertAndSend("transition", sendMsg);
+    }
+ 
 }
 
 ```
+
+在上面代码中，我们通过调用者提供外部事务@Transactional\(rollbackFor = Exception.class\)，来现实事务方法。一旦方法中抛出异常，比如执行数据库操作时，就会被捕获到，同时事务将进行回滚，并且向外发送的消息将不会发送出去。
+
+TransactionReceiver2.java
+
+```
+
+ 
+package net.anumbrella.rabbitmq.receiver;
+ 
+import java.io.IOException;
+ 
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.stereotype.Component;
+ 
+import com.rabbitmq.client.Channel;
+ 
+@Component
+public class TransactionReceiver2 {
+ 
+    @RabbitListener(queues = "transition")
+    public void process(Message message, Channel channel) throws IOException {
+        System.out.println("TransactionReceiver2  : " + new String(message.getBody()));
+    }
+}
+
+```
+
+添加完消息的发送者和接收者后，还需要在controller包下的RabbitTest.java中添加模拟消息发送的Restful接口方法，添加如下代码：
+
+```
+@Autowired
+    private TransactionSender2 transactionSender;
+    
+    /**
+     * 事务消息发送测试
+     */
+    @GetMapping("/transition")
+    public void transition() {
+        transactionSender.send("Transition:  ");
+    }
+
+```
+
+启动wireshark，选择好网络，输入amqp过滤我们需要的信息。  
+然后启动Spring Boot项目，访问接口http://localhost:8080/rabbit/transition。
+
+在控制台我们可以得到消息已经发送和收到，
+
+TransactionSender2 : Transition:  2018-06-18 23:00:16 This is a transaction message！   
+TransactionReceiver2  : Transition:  2018-06-18 23:00:16 This is a transaction message！ 
+
+查看wireshark如下：
+
+![](/assets/20181227173121879.png)
+
+
 
 
 
