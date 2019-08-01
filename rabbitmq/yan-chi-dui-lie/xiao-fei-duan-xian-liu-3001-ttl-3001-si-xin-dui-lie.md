@@ -27,15 +27,23 @@ RabbitMQ 提供了一种 qos （服务质量保证）功能，即在非自动确
 * @throws java.io.IOException if an error is encountered
 */
 void basicQos(int prefetchSize, int prefetchCount, boolean global) throws IOException;
-
 ```
 
-* prefetchSize：0，单条消息大小限制，0代表不限制
+> * prefetchSize：0，单条消息大小限制，0代表不限制
+>
+> * prefetchCount：一次性消费的消息数量。会告诉 RabbitMQ 不要同时给一个消费者推送多于 N 个消息，即一旦有 N 个消息还没有 ack，则该 consumer 将 block 掉，直到有消息 ack。
+>
+> * global：true、false 是否将上面设置应用于 channel，简单点说，就是上面限制是 channel 级别的还是 consumer 级别。当我们设置为 false 的时候生效，设置为 true 的时候没有了限流功能，因为 channel 级别尚未实现。
+>
+> 注意：prefetchSize 和 global 这两项，rabbitmq 没有实现，暂且不研究。特别注意一点，prefetchCount 在 no\_ask=false 的情况下才生效，即在自动应答的情况下这两个值是不生效的。
 
-* prefetchCount：一次性消费的消息数量。会告诉 RabbitMQ 不要同时给一个消费者推送多于 N 个消息，即一旦有 N 个消息还没有 ack，则该 consumer 将 block 掉，直到有消息 ack。
+### 3.如何对消费端进行限流 {#如何对消费端进行限流}
 
-* global：true、false 是否将上面设置应用于 channel，简单点说，就是上面限制是 channel 级别的还是 consumer 级别。当我们设置为 false 的时候生效，设置为 true 的时候没有了限流功能，因为 channel 级别尚未实现。
-* 注意：prefetchSize 和 global 这两项，rabbitmq 没有实现，暂且不研究。特别注意一点，prefetchCount 在 no\_ask=false 的情况下才生效，即在自动应答的情况下这两个值是不生效的。
+* 首先第一步，我们既然要使用消费端限流，我们需要关闭自动 ack，将 autoAck 设置为 false`channel.basicConsume(queueName, false, consumer);`
+
+* 第二步我们来设置具体的限流大小以及数量。`channel.basicQos(0, 15, false);`
+
+* 第三步在消费者的 handleDelivery 消费方法中手动 ack，并且设置批量处理 ack 回应为 true`channel.basicAck(envelope.getDeliveryTag(), true);`
 
 
 
