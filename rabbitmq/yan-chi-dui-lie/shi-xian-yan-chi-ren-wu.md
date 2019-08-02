@@ -1,4 +1,6 @@
-# 实现延迟任务
+```
+实现延迟任务
+```
 
 场景一：物联网系统经常会遇到向终端下发命令，如果命令一段时间没有应答，就需要设置成超时。
 
@@ -19,7 +21,6 @@ byte[] messageBodyBytes = "Hello, world!".getBytes();
 AMQP.BasicProperties properties = new AMQP.BasicProperties();
 properties.setExpiration("60000");
 channel.basicPublish("my-exchange", "routing-key", properties, messageBodyBytes);
-
 ```
 
 当上面的消息扔到队列中后，过了60秒，如果没有被消费，它就死了。不会被消费者消费到。这个消息后面的，没有“死掉”的消息对顶上来，被消费者消费。死信在队列中并不会被删除和释放，它会被统计到队列的消息数中去。单靠死信还不能实现延迟任务，还要靠Dead Letter Exchange。
@@ -63,19 +64,18 @@ ConnectionFactory factory = new ConnectionFactory();
             factory.setVirtualHost("/");
             factory.setHost("10.23.22.42");
             factory.setPort(5672);
- 
+
             conn = factory.newConnection();
             channel = conn.createChannel();
- 
+
             byte[] messageBodyBytes = "Hello, world!".getBytes();
- 
+
             byte i = 10;
             while (i-- > 0) {                
                 channel.basicPublish("queue1", "queue1", new AMQP.BasicProperties.Builder().expiration(String.valueOf(i * 1000)).build(),
                         new byte[] { i });
- 
-            }
 
+            }
 ```
 
 上面的代码我模拟了1-10号消息，消息的内容里面是1-10。过期的时间是10-1秒。这里要注意，虽然10是第一个发送，但是它过期的时间最长。
@@ -89,21 +89,20 @@ factory.setPassword("123456");
 factory.setVirtualHost("/");
 factory.setHost("10.23.22.42");
 factory.setPort(5672);
- 
+
 conn = factory.newConnection();
 channel = conn.createChannel();
- 
+
 channel.basicConsume("queue2", true, "consumer", new DefaultConsumer(channel) {
 @Override
 public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties,byte[] body) throws IOException {
- 
+
 long deliveryTag = envelope.getDeliveryTag();
-                    
+
 //do some work async
 System.out.println(body[0]);
 }
 });
-
 ```
 
 运行后如上面的程序，过了10s以后，消费者开始收到数据，但是它是一次性收到如下结果：
@@ -118,10 +117,7 @@ Consumer第一个收到的还是10。虽然10是第一个放进队列，但是�
 
 延迟队列存储的对象肯定是对应的延时消息，所谓”延时消息”是指当消息被发送以后，并不想让消费者立即拿到消息，而是等待指定时间后，消费者才拿到这个消息进行消费。
 
-  
-
-
-        上面的Queue1队列是不设置消费者的，过了有效期后消息会路由放入Queue2队列，此时Queue2的消费者拿到消息进行处理。针对上面的场景二：“订单下单之后30分钟后，如果用户没有付钱，则系统自动取消订单、库存回滚。”问题，可以在Queue2的消费者拿到订单信息后，先判断订单是否已经支付，若是已经支付，直接将消息消费掉就可以了，否则执行订单状态修改取消、库存回滚等一系列操作，然后再将消息消费掉。
+上面的Queue1队列是不设置消费者的，过了有效期后消息会路由放入Queue2队列，此时Queue2的消费者拿到消息进行处理。针对上面的场景二：“订单下单之后30分钟后，如果用户没有付钱，则系统自动取消订单、库存回滚。”问题，可以在Queue2的消费者拿到订单信息后，先判断订单是否已经支付，若是已经支付，直接将消息消费掉就可以了，否则执行订单状态修改取消、库存回滚等一系列操作，然后再将消息消费掉。
 
 
 
